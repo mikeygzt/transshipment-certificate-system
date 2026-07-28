@@ -70,13 +70,15 @@ public class UserAccount {
     )
     private OffsetDateTime createdAt;
 
+    protected UserAccount(){}
+
     public UserAccount(
         String fullName,
         String telephone,
         String companyTRN,
         String shippingAgentName,
         String email,
-        String password,
+        String passwordHash,
         Role role
     ){
         this.fullName = fullName;
@@ -84,19 +86,14 @@ public class UserAccount {
         this.companyTRN = companyTRN;
         this.shippingAgentName = shippingAgentName;
         this.email = email;
-        this.passwordHash = password;
+        this.passwordHash = passwordHash;
         this.role = role;
     }
 
-    // Adding the timestamp to 'created_at' before the entity is saved to the database
+    // Adding 'created_at' & 'pending_confirmation' before the entity is saved to the database
     @PrePersist
-    void beforeInsertAddTimeStamp(){
+    void beforeInsert(){
         this.createdAt = OffsetDateTime.now();
-    }
-
-    // Adding 'pending confirmation' before the entity is saved to the database
-    @PrePersist
-    void beforeInsertAddStatus(){
         this.status = Status.PENDING_CONFIRMATION;
     }
     

@@ -106,9 +106,7 @@ public class UserService {
             role);
 
         UserAccount saved = userRepository.save(user);
-
         return toResponse(saved);
-    
     }
 
     private UserResponse toResponse(UserAccount user) {
