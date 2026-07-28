@@ -1,0 +1,357 @@
+package jm.gov.jca.transshipment_api.user;
+
+import java.time.Instant;
+import java.time.OffsetDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import jakarta.persistence.*;
+/*import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;*/
+
+//Structure for the Transhipment_Requests Table
+@Entity
+@Table(name ="transhipment_requests")
+public class TransshipmentRequest {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long requestId;
+
+    @ManyToOne
+    @JoinColumn(
+        nullable = false,
+        name = "requester_user_id"
+    )
+    private UserAccount requesterUserId;
+
+    @Column(
+        nullable = false,
+        length = 255,
+        name = "shipping_agent_name"
+    )
+    private String shippingAgentName;
+
+    @Column(
+        nullable = true,
+        length = 100,
+        name = "agent_code_jca"
+    )
+    private String agentCodeJca;
+
+    @Column(
+        nullable = false,
+        length=13,
+        name= "trn"
+    )
+    private String trn;
+
+    @Column(
+        nullable = false,
+        length = 255,
+        name ="applicant_name"
+    )
+    private String applicantName;
+
+    @Column(
+        nullable = false,
+        length =255,
+        name = "email_address"
+    )
+    private String emailAdress;
+
+    @Column(
+        nullable = false,
+        length = 25,
+        name = "phone_number"
+    )
+    private String phoneNumber; //submitter phone number
+
+    @Column(
+        nullable = false,
+        length = 100,
+        name = "request_type"
+    )
+    private String requestType;
+
+    @Column(
+        nullable = false,
+        length = 100,
+        name = "port_terminal"
+    )
+    private String portTerminal;
+
+    @Column(
+        nullable = false,
+        length = 255,
+        name = "purpose_of_certificate"
+    )
+    private String purposeOfCertificate;
+
+    @Column(
+        nullable = false,
+        length = 100,
+        name = "inbound_voyage_no"
+    )
+    private String inboundVoyageNo;
+
+    @Column(
+        nullable = false,
+        length = 255,
+        name = "inbound_vessel_name"
+    )
+    private String inboundVesselName;
+
+    @Column(
+        nullable = false,
+        name = "date of arrival"
+    )
+    private OffsetDateTime dateOfArrival;
+
+    @Column(
+        nullable = false,
+        length = 100,
+        name = "outbound_voyage_no"
+    )
+    private String outboundVoyageNumber;
+
+    @Column(
+        nullable = false,
+        length = 255,
+        name = "outbound_vessel_name"
+    )
+    private String outboundVesselName;
+
+    @Column(
+        nullable = false,
+        name = "expected_departure_date"
+    )
+    private OffsetDateTime expectedDepartureDate;
+
+    @Column(
+        nullable = false,
+        length = 100,
+        name = "manifest_number"
+    )
+    private String manifestNumber;
+
+    @Column(
+        nullable = false,
+        length = 100,
+        name = "bill_of_lading_waybill"
+    )
+    private String billOfLadingWaybill;
+
+    @Column(
+        nullable = true,
+        length = 100,
+        name = "rotation_call_reference"
+    )
+    private String rotationCallReference;
+
+    @Column(
+        nullable = true,
+        length = 512,
+        columnDefinition = "TEXT",
+        name = "remarks_instructions"
+    )
+    private String remarksInstructions;
+
+    @Column(
+        nullable = false,
+        length = 50,
+        name = "status"
+    )
+    private String status;
+
+    @Column(
+        nullable = true,
+        length = 512,
+        columnDefinition = "TEXT",
+        name = "review_comments"
+    )
+    private String reviewComments;
+
+    @Column(
+        nullable = true,
+        length = 500,
+        name = "pdf_certificate_path"
+    )
+    private String pdfCertificatePath;
+
+    @CreationTimestamp
+    @Column(
+        nullable = false,
+        name = "created_at"
+    )
+    private Instant createdAt;
+
+    
+    @UpdateTimestamp
+    @Column(
+        nullable = false,
+        name = "updated_at"
+    )
+    private Instant updatedAt;
+
+    
+    
+    public TransshipmentRequest(
+    UserAccount requesterUserId,
+    String shippingAgentName,
+    String agentCodeJca,
+    String trn,
+    String applicantName,
+    String emailAdress,
+    String phoneNumber,
+    String requestType,
+    String portTerminal,
+    String purposeOfCertificate,
+    String inboundVoyageNo,
+    String inboundVesselName,
+    OffsetDateTime dateOfArrival,
+    String outboundVoyageNumber,
+    String outboundVesselName,
+    OffsetDateTime expectedDepartureDate,
+    String manifestNumber,
+    String billOfLadingWaybill,
+    String rotationCallReference,
+    String remarksInstructions,
+    String status,
+    String reviewComments,
+    String pdfCertificatePath
+) {
+    this.requesterUserId = requesterUserId;
+    this.shippingAgentName = shippingAgentName;
+    this.agentCodeJca = agentCodeJca;
+    this.trn = trn;
+    this.applicantName = applicantName;
+    this.emailAdress = emailAdress;
+    this.phoneNumber = phoneNumber;
+    this.requestType = requestType;
+    this.portTerminal = portTerminal;
+    this.purposeOfCertificate = purposeOfCertificate;
+    this.inboundVoyageNo = inboundVoyageNo;
+    this.inboundVesselName = inboundVesselName;
+    this.dateOfArrival = dateOfArrival;
+    this.outboundVoyageNumber = outboundVoyageNumber;
+    this.outboundVesselName = outboundVesselName;
+    this.expectedDepartureDate = expectedDepartureDate;
+    this.manifestNumber = manifestNumber;
+    this.billOfLadingWaybill = billOfLadingWaybill;
+    this.rotationCallReference = rotationCallReference;
+    this.remarksInstructions = remarksInstructions;
+    this.status = status;
+    this.reviewComments = reviewComments;
+    this.pdfCertificatePath = pdfCertificatePath;
+}
+
+public long getRequestId() {
+    return requestId;
+}
+
+public UserAccount getRequesterUserId() {
+    return requesterUserId;
+}
+
+public String getShippingAgentName() {
+    return shippingAgentName;
+}
+
+public String getAgentCodeJca() {
+    return agentCodeJca;
+}
+
+public String getTrn() {
+    return trn;
+}
+
+public String getApplicantName() {
+    return applicantName;
+}
+
+public String getEmailAdress() {
+    return emailAdress;
+}
+
+public String getPhoneNumber() {
+    return phoneNumber;
+}
+
+public String getRequestType() {
+    return requestType;
+}
+
+public String getPortTerminal() {
+    return portTerminal;
+}
+
+public String getPurposeOfCertificate() {
+    return purposeOfCertificate;
+}
+
+public String getInboundVoyageNo() {
+    return inboundVoyageNo;
+}
+
+public String getInboundVesselName() {
+    return inboundVesselName;
+}
+
+public OffsetDateTime getDateOfArrival() {
+    return dateOfArrival;
+}
+
+public String getOutboundVoyageNumber() {
+    return outboundVoyageNumber;
+}
+
+public String getOutboundVesselName() {
+    return outboundVesselName;
+}
+
+public OffsetDateTime getExpectedDepartureDate() {
+    return expectedDepartureDate;
+}
+
+public String getManifestNumber() {
+    return manifestNumber;
+}
+
+public String getBillOfLadingWaybill() {
+    return billOfLadingWaybill;
+}
+
+public String getRotationCallReference() {
+    return rotationCallReference;
+}
+
+public String getRemarksInstructions() {
+    return remarksInstructions;
+}
+
+public String getStatus() {
+    return status;
+}
+
+public String getReviewComments() {
+    return reviewComments;
+}
+
+public String getPdfCertificatePath() {
+    return pdfCertificatePath;
+}
+
+public Instant getCreatedAt() {
+    return createdAt;
+}
+
+public Instant getUpdatedAt() {
+    return updatedAt;
+}
+
+}
