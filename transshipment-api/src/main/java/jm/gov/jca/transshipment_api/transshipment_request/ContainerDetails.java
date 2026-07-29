@@ -1,4 +1,4 @@
-package jm.gov.jca.transshipment_api.user;
+package jm.gov.jca.transshipment_api.transshipment_request;
 
 import java.math.BigDecimal;
 

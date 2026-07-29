@@ -1,4 +1,4 @@
-package jm.gov.jca.transshipment_api.user;
+package jm.gov.jca.transshipment_api.transshipment_request;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -13,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;*/
+import jm.gov.jca.transshipment_api.user.UserAccount;
 
 //Structure for the Transhipment_Requests Table
 @Entity
@@ -62,7 +63,7 @@ public class TransshipmentRequest {
         length =255,
         name = "email_address"
     )
-    private String emailAdress;
+    private String emailAddress;
 
     @Column(
         nullable = false,
@@ -166,7 +167,7 @@ public class TransshipmentRequest {
         length = 50,
         name = "status"
     )
-    private String status;
+    private RequestStatus status;
 
     @Column(
         nullable = true,
@@ -206,7 +207,7 @@ public class TransshipmentRequest {
     String agentCodeJca,
     String trn,
     String applicantName,
-    String emailAdress,
+    String emailAddress,
     String phoneNumber,
     String requestType,
     String portTerminal,
@@ -221,7 +222,7 @@ public class TransshipmentRequest {
     String billOfLadingWaybill,
     String rotationCallReference,
     String remarksInstructions,
-    String status,
+    RequestStatus status,
     String reviewComments,
     String pdfCertificatePath
 ) {
@@ -230,7 +231,7 @@ public class TransshipmentRequest {
     this.agentCodeJca = agentCodeJca;
     this.trn = trn;
     this.applicantName = applicantName;
-    this.emailAdress = emailAdress;
+    this.emailAddress = emailAddress;
     this.phoneNumber = phoneNumber;
     this.requestType = requestType;
     this.portTerminal = portTerminal;
@@ -274,8 +275,8 @@ public String getApplicantName() {
     return applicantName;
 }
 
-public String getEmailAdress() {
-    return emailAdress;
+public String getEmailAddress() {
+    return emailAddress;
 }
 
 public String getPhoneNumber() {
@@ -334,7 +335,7 @@ public String getRemarksInstructions() {
     return remarksInstructions;
 }
 
-public String getStatus() {
+public RequestStatus getStatus() {
     return status;
 }
 
