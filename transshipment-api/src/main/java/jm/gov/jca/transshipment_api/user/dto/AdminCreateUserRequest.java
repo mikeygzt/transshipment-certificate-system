@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jm.gov.jca.transshipment_api.user.Role;
+import jm.gov.jca.transshipment_api.user.Status;
 
 public record AdminCreateUserRequest (
     
@@ -31,7 +32,10 @@ public record AdminCreateUserRequest (
     String password,
 
     @NotNull
-    Role role
+    Role role,
+
+    @NotNull
+    Status status
 ){
     
 }
