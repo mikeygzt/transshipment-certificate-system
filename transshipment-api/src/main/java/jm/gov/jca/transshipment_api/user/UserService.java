@@ -43,7 +43,8 @@ public class UserService {
             request.email(),
             request.password(),
             Role.REQUESTER,
-            Status.PENDING_CONFIRMATION
+            Status.PENDING_CONFIRMATION,
+            true
         );
     }
 
@@ -58,7 +59,8 @@ public class UserService {
             request.email(),
             request.password(),
             request.role(),
-            Status.ACTIVE
+            Status.ACTIVE,
+            false
         );
     }
 
@@ -99,7 +101,8 @@ public class UserService {
         String email,
         String rawPassword,
         Role role,
-        Status status
+        Status status,
+        boolean sendVerificationCode
     ){
         String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
 
@@ -119,11 +122,13 @@ public class UserService {
 
         user.setStatus(status);
 
-        UserAccount saved = userRepository.save(user);
-        
-        emailVerificationService.createVerificationCode(saved);
+        UserAccount savedUser = userRepository.save(user);
 
-        return toResponse(saved);
+        if(sendVerificationCode) {
+            emailVerificationService.createVerificationCode(savedUser);
+        }
+
+        return toResponse(savedUser);
     }
 
     private UserResponse toResponse(UserAccount user) {

@@ -95,7 +95,6 @@ public class UserAccount {
     @PrePersist
     void beforeInsert(){
         this.createdAt = OffsetDateTime.now();
-        this.status = Status.PENDING_CONFIRMATION;
     }
     
     public UUID getId(){
