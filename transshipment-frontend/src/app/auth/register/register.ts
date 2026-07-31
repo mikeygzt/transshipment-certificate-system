@@ -2,16 +2,20 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../auth.service';
 import { finalize } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
   imports: [ReactiveFormsModule],
   templateUrl: './register.html',
-  styleUrl: './register.css',
+  styleUrls: [
+    '../auth-layout.css',
+    './register.css']
 })
 export class Register {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   isSubmitting = false;
   errorMessage = "";
@@ -86,8 +90,11 @@ export class Register {
       )
       .subscribe({
         next: () => {
-          this.registeredEmail = request.email;
-          this.registrationComplete = true;
+          this.router.navigate(['/verify-email'], {
+            queryParams: {
+              email: request.email 
+            }
+          })
         },
         error: () => {
           this.errorMessage = "Registration failed. Please check your information and try again.";

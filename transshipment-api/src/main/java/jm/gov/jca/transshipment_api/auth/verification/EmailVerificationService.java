@@ -1,7 +1,7 @@
 package jm.gov.jca.transshipment_api.auth.verification;
 
 import java.security.SecureRandom;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,7 +41,7 @@ public class EmailVerificationService {
         List<EmailVerificationCode> existingCodes = verificationRepository
             .findAllByUserAndUsedAtIsNull(user);
 
-        OffsetDateTime now = OffsetDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
 
         for (EmailVerificationCode existingCode : existingCodes) {
             existingCode.setUsedAt(now);
@@ -56,7 +56,7 @@ public class EmailVerificationService {
         EmailVerificationCode verification = new EmailVerificationCode(
             user,
             codeHash,
-            OffsetDateTime.now().plusMinutes(10)
+            LocalDateTime.now().plusMinutes(10)
         );
 
         verificationRepository.save(verification);
@@ -76,7 +76,7 @@ public class EmailVerificationService {
                 new IllegalArgumentException("No verification code found")
         );
 
-        if (verification.getExpiresAt().isBefore(OffsetDateTime.now())) {
+        if (verification.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Verification code has expired");
         }
 
@@ -84,7 +84,7 @@ public class EmailVerificationService {
             throw new IllegalArgumentException("Invalid verification code");
         }
 
-        verification.setUsedAt(OffsetDateTime.now());
+        verification.setUsedAt(LocalDateTime.now());
 
         verificationRepository.save(verification);
     }
