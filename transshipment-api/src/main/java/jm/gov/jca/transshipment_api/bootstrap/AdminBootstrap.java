@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import jm.gov.jca.transshipment_api.user.Role;
+import jm.gov.jca.transshipment_api.user.Status;
 import jm.gov.jca.transshipment_api.user.UserAccount;
 import jm.gov.jca.transshipment_api.user.UserRepository;
 
@@ -90,6 +91,8 @@ public class AdminBootstrap implements ApplicationRunner {
                 passwordEncoder.encode(adminPassword),
                 Role.ADMIN
             );
+        
+        admin.setStatus(Status.ACTIVE);
 
         userRepository.save(admin);
 

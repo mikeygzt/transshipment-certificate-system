@@ -2,14 +2,15 @@ package jm.gov.jca.transshipment_api.user;
 
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name="users")
 public class UserAccount {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(
         nullable = false,
@@ -94,10 +95,9 @@ public class UserAccount {
     @PrePersist
     void beforeInsert(){
         this.createdAt = OffsetDateTime.now();
-        this.status = Status.PENDING_CONFIRMATION;
     }
     
-    public Long getId(){
+    public UUID getId(){
         return id;
     }
 
