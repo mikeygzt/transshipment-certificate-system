@@ -1,6 +1,7 @@
 package jm.gov.jca.transshipment_api.transshipment_request.dto;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -8,6 +9,7 @@ import jm.gov.jca.transshipment_api.transshipment_request.RequestStatus;
 import jm.gov.jca.transshipment_api.user.UserAccount;
 
 public record TransshipmentDetailsRequest(
+    UUID requestId,
 
     UserAccount requesterUserId,
     
@@ -40,7 +42,7 @@ public record TransshipmentDetailsRequest(
     String inboundVesselName,
     
     @NotBlank
-    OffsetDateTime dateOfArrival,
+    LocalDateTime dateOfArrival,
     
     @NotBlank
     @Size(max = 100)
@@ -50,7 +52,7 @@ public record TransshipmentDetailsRequest(
     String outboundVesselName,
     
     @NotBlank
-    OffsetDateTime expectedDepartureDate,
+    LocalDateTime expectedDepartureDate,
     
     @NotBlank
     String manifestNumber,
@@ -69,5 +71,5 @@ public record TransshipmentDetailsRequest(
 
     String pdfCertificatePath
 ) {
- 
+    
 }

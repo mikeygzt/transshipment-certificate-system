@@ -1,6 +1,7 @@
 package jm.gov.jca.transshipment_api.transshipment_request;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,7 +17,7 @@ import jakarta.persistence.Table;
 public class ContainerDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long containerId;
+    private UUID containerId;
 
     @ManyToOne
     @JoinColumn(
@@ -113,7 +114,7 @@ public class ContainerDetails {
     this.finalDestination = finalDestination;
 }
 
-public long getContainerId() {
+public UUID getContainerId() {
     return containerId;
 }
 

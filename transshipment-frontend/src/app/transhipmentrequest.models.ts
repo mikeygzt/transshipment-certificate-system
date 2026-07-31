@@ -1,1 +1,3 @@
-export interface Transhipmentrequest {}
+export interface Transhipmentrequest {
+    
+}

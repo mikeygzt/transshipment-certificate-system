@@ -1,6 +1,10 @@
 package jm.gov.jca.transshipment_api.transshipment_request.dto;
 
-import java.time.OffsetDateTime;
+
+import java.time.LocalDateTime;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import jm.gov.jca.transshipment_api.transshipment_request.RequestStatus;
 import jm.gov.jca.transshipment_api.user.UserAccount;
@@ -18,10 +22,10 @@ public record TransshipmentDetailsResponse(
     String purposeOfCertificate,
     String inboundVoyageNo,
     String inboundVesselName,
-    OffsetDateTime dateOfArrival,
+    LocalDateTime dateOfArrival,
     String outboundVoyageNumber,
     String outboundVesselName,
-    OffsetDateTime expectedDepartureDate,
+    LocalDateTime expectedDepartureDate,
     String manifestNumber,
     String billOfLadingWaybill,
     String rotationCallReference,
@@ -29,6 +33,8 @@ public record TransshipmentDetailsResponse(
     RequestStatus status,
     String reviewComments,
     String pdfCertificatePath
+    
 
 ) {    
+
 }

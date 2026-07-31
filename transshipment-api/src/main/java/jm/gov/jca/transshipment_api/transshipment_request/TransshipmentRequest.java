@@ -1,12 +1,14 @@
 package jm.gov.jca.transshipment_api.transshipment_request;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 /*import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,9 +23,9 @@ import jm.gov.jca.transshipment_api.user.UserAccount;
 public class TransshipmentRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long requestId;
+    private UUID requestId;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(
         nullable = false,
         name = "requester_user_id"
@@ -111,7 +113,7 @@ public class TransshipmentRequest {
         nullable = false,
         name = "date of arrival"
     )
-    private OffsetDateTime dateOfArrival;
+    private LocalDateTime dateOfArrival;
 
     @Column(
         nullable = false,
@@ -131,7 +133,7 @@ public class TransshipmentRequest {
         nullable = false,
         name = "expected_departure_date"
     )
-    private OffsetDateTime expectedDepartureDate;
+    private LocalDateTime expectedDepartureDate;
 
     @Column(
         nullable = false,
@@ -214,15 +216,14 @@ public class TransshipmentRequest {
     String purposeOfCertificate,
     String inboundVoyageNo,
     String inboundVesselName,
-    OffsetDateTime dateOfArrival,
+    LocalDateTime dateOfArrival,
     String outboundVoyageNumber,
     String outboundVesselName,
-    OffsetDateTime expectedDepartureDate,
+    LocalDateTime expectedDepartureDate,
     String manifestNumber,
     String billOfLadingWaybill,
     String rotationCallReference,
     String remarksInstructions,
-    RequestStatus status,
     String reviewComments,
     String pdfCertificatePath
 ) {
@@ -246,12 +247,11 @@ public class TransshipmentRequest {
     this.billOfLadingWaybill = billOfLadingWaybill;
     this.rotationCallReference = rotationCallReference;
     this.remarksInstructions = remarksInstructions;
-    this.status = status;
     this.reviewComments = reviewComments;
     this.pdfCertificatePath = pdfCertificatePath;
 }
 
-public long getRequestId() {
+public UUID getRequestId() {
     return requestId;
 }
 
@@ -303,7 +303,7 @@ public String getInboundVesselName() {
     return inboundVesselName;
 }
 
-public OffsetDateTime getDateOfArrival() {
+public LocalDateTime getDateOfArrival() {
     return dateOfArrival;
 }
 
@@ -315,7 +315,7 @@ public String getOutboundVesselName() {
     return outboundVesselName;
 }
 
-public OffsetDateTime getExpectedDepartureDate() {
+public LocalDateTime getExpectedDepartureDate() {
     return expectedDepartureDate;
 }
 
@@ -355,4 +355,7 @@ public Instant getUpdatedAt() {
     return updatedAt;
 }
 
+public void setStatus(RequestStatus status){
+    this.status=status;
+}
 }
