@@ -1,6 +1,12 @@
 package jm.gov.jca.transshipment_api.auth;
 
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,6 +26,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jm.gov.jca.transshipment_api.auth.dto.AuthResponse;
 import jm.gov.jca.transshipment_api.auth.dto.LoginRequest;
+import jm.gov.jca.transshipment_api.auth.dto.ResendVerificationRequest;
+import jm.gov.jca.transshipment_api.auth.dto.VerifyEmailRequest;
 import jm.gov.jca.transshipment_api.user.UserService;
 import jm.gov.jca.transshipment_api.user.dto.RegisterRequesterRequest;
 import jm.gov.jca.transshipment_api.user.dto.UserResponse;
@@ -63,34 +71,64 @@ public class AuthController {
         }
 
     @PostMapping("/login")
-    public AuthResponse login(
+    public ResponseEntity<?> login(
         @Valid
         @RequestBody
         LoginRequest request,
         HttpServletRequest httpRequest,
         HttpServletResponse httpResponse) {
-            Authentication authenticationRequest = 
-                UsernamePasswordAuthenticationToken.unauthenticated(request.email(), request.password());
-        
-            Authentication authentication = authenticationManager.authenticate(authenticationRequest);
 
-            // Protect against session fixation
-            sessionAuthenticationStrategy
-                .onAuthentication(authentication, httpRequest, httpResponse);
+            // temp
+            System.out.println("LOGIN CONTROLLER HIT " + request.email());
+
+            try{
+                Authentication authenticationRequest = 
+                    UsernamePasswordAuthenticationToken.unauthenticated(request.email(), request.password());
             
-            SecurityContext context =
-                SecurityContextHolder
-                    .createEmptyContext();
+                Authentication authentication =
+                     authenticationManager.authenticate(authenticationRequest);
                 
-            context.setAuthentication(authentication);
+                // temp
+                System.out.println("AUTHENTICATION SUCCESS: " + authentication.getName());
 
-            SecurityContextHolder
-                .setContext(context);
+                // Protect against session fixation
+                sessionAuthenticationStrategy
+                    .onAuthentication(authentication, httpRequest, httpResponse);
+                
+                System.out.println("SESSION STRATEGY SUCCESS");
 
-            securityContextRepository
-                .saveContext(context, httpRequest, httpResponse);
-            
-            return toAuthResponse(authentication);
+                SecurityContext context = SecurityContextHolder.createEmptyContext();
+                    
+                context.setAuthentication(authentication);
+    
+                SecurityContextHolder.setContext(context);
+    
+                securityContextRepository
+                    .saveContext(context, httpRequest, httpResponse);
+                
+                // temp
+                System.out.println("SECURITY CONTEXT SAVED");
+                
+                return ResponseEntity.ok(toAuthResponse(authentication));
+                
+            } catch(InternalAuthenticationServiceException ex){
+
+                // temp
+                System.err.println("INTERNAL AUTHENTICATION ERROR:");
+                System.err.println(ex.getMessage());
+
+                if(ex.getCause() != null){
+                    ex.getCause().printStackTrace();
+                }
+
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(Map.of("error", "Internal authentication error"));
+
+            } catch(AuthenticationException ex){
+                
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid email or password"));
+            }
         }
         
         @GetMapping("/me")
@@ -110,4 +148,28 @@ public class AuthController {
 
             return new AuthResponse(authentication.getName(), role);
         }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<Void> verifyEmail(
+        @Valid
+        @RequestBody
+        VerifyEmailRequest request
+    )
+    {
+        userService.verifyEmail(request.email(), request.code());
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<Void> resendVerification(
+        @Valid
+        @RequestBody
+        ResendVerificationRequest request
+    )
+    {
+        userService.resendVerificationCode(request.email());
+
+        return ResponseEntity.noContent().build();
+    }
 }

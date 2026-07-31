@@ -2,6 +2,7 @@ package jm.gov.jca.transshipment_api.user;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import org.springframework.transaction.annotation.Transactional;
+
+import jm.gov.jca.transshipment_api.auth.verification.EmailVerificationService;
 import jm.gov.jca.transshipment_api.user.dto.AdminCreateUserRequest;
 import jm.gov.jca.transshipment_api.user.dto.RegisterRequesterRequest;
 import jm.gov.jca.transshipment_api.user.dto.UserResponse;
@@ -18,10 +21,16 @@ import jm.gov.jca.transshipment_api.user.dto.UserResponse;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationService emailVerificationService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(
+        UserRepository userRepository, 
+        PasswordEncoder passwordEncoder,
+        EmailVerificationService emailVerificationService   
+    ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailVerificationService = emailVerificationService;
     }
 
     @Transactional
@@ -33,7 +42,9 @@ public class UserService {
             request.shippingAgentName(),
             request.email(),
             request.password(),
-            Role.REQUESTER
+            Role.REQUESTER,
+            Status.PENDING_CONFIRMATION,
+            true
         );
     }
 
@@ -47,7 +58,9 @@ public class UserService {
             request.shippingAgentName(),
             request.email(),
             request.password(),
-            request.role()
+            request.role(),
+            Status.ACTIVE,
+            false
         );
     }
 
@@ -62,7 +75,7 @@ public class UserService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteUser(Long userId){
+    public void deleteUser(UUID userId){
         UserAccount user = userRepository
         .findById(userId)
         .orElseThrow(() -> 
@@ -87,7 +100,9 @@ public class UserService {
         String shippingAgentName,
         String email,
         String rawPassword,
-        Role role
+        Role role,
+        Status status,
+        boolean sendVerificationCode
     ){
         String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
 
@@ -105,10 +120,15 @@ public class UserService {
             passwordEncoder.encode(rawPassword), 
             role);
 
-        UserAccount saved = userRepository.save(user);
+        user.setStatus(status);
 
-        return toResponse(saved);
-    
+        UserAccount savedUser = userRepository.save(user);
+
+        if(sendVerificationCode) {
+            emailVerificationService.createVerificationCode(savedUser);
+        }
+
+        return toResponse(savedUser);
     }
 
     private UserResponse toResponse(UserAccount user) {
@@ -123,6 +143,33 @@ public class UserService {
             user.getStatus(),
             user.getCreatedAt()
         );
+    }
+
+    public void verifyEmail(String email, String code){
+        UserAccount user = userRepository
+            .findByEmailIgnoreCase(email)
+            .orElseThrow(() ->
+                new IllegalArgumentException("User not found")
+            );
+
+        if (user.getStatus() == Status.ACTIVE) {
+            throw new IllegalArgumentException("Account is already verified");
+        }
+
+        emailVerificationService.verifyCode(user, code);
+
+        user.setStatus(Status.ACTIVE);
+
+        userRepository.save(user);
+
+
+    }
+
+    public void resendVerificationCode(String email){
+
+            userRepository.findByEmailIgnoreCase(email)
+                .filter(user -> user.getStatus() == Status.PENDING_CONFIRMATION)
+                .ifPresent(emailVerificationService::createVerificationCode);
     }
 
 }

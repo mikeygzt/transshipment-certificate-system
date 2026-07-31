@@ -4,9 +4,10 @@ import jm.gov.jca.transshipment_api.user.Role;
 import jm.gov.jca.transshipment_api.user.Status;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 public record UserResponse (
-    Long id,
+    UUID id,
     String fullName,
     String telephone,
     String companyTRN,
