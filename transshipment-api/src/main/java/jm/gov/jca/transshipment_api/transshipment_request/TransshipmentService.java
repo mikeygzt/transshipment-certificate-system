@@ -26,12 +26,20 @@ public class TransshipmentService {
     //Create New Request
     @Transactional
     public TransshipmentDetailsResponse createRequest(TransshipmentDetailsRequest request){
+        //create a response entity
         TransshipmentDetailsResponse newrequest= createRequest(request);
 
-        //still creating a copy, should be actually saving to the db. create iy hso that there is an entity being passed
+        //
+
+        //refactoring note: old ver was  creating a copy, should be actually saving to the db. create it so that there is an entity being passed
+
         return transshipmentRequestRepository.save(newrequest);
 
     }
+
+    //to be added: get request-> Get Singular request from the db by id
+
+    //to be added: get requests by user id
 
     //Allow for updates to the request
     @Transactional
@@ -41,11 +49,15 @@ public class TransshipmentService {
         .orElseThrow(() ->
             new ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found")
         );
-        transshipmentRequestRepository.update(request);
+
+        //Find the request by id
+        //identify the information needed to be changed
+        //replace that information in db
+        //transshipmentRequestRepository.update(request);
 
     }
 
-    //Enable reviewers to view the list of requests
+    //Enable reviewers to view the list of general requests
     @Transactional
     @PreAuthorize("hasRole('REVIEWER')")
     public List<TransshipmentDetailsResponse> getAllRequests(){

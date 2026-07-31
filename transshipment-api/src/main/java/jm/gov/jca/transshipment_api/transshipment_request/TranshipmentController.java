@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 
 @RestController
+@RequestMapping("api/transshipmentrequest")
 public class TranshipmentController {
     
     private final TransshipmentService transshipmentService;
@@ -24,27 +26,27 @@ public class TranshipmentController {
         this.transshipmentService = transshipmentService;
     }
 
-    @PostMapping("api/")
+    @PostMapping("api/transshipmentrequest/create")
     public String createRequest(@RequestBody String entity) {
         //TODO: process POST request
         
         return entity;
     }
 
-    @GetMapping("api/get")
+    @GetMapping("api/transshipmentrequest/all")
     public String getAllRequests(@RequestParam String param) {
         return new String();
     }
 
-    @PutMapping("path/{id}")
+    @PutMapping("api/transshipmentrequest/update{id}")
     @ResponseStatus(HttpStatus.OK)
-    public String putMethodName(@PathVariable String id, @RequestBody String entity) {
+    public String updateRequest(@PathVariable String id, @RequestBody String entity) {
         //TODO: process PUT request
         
         return entity;
     }
 
-    @DeleteMapping("api/delete{id}")
+    @DeleteMapping("api/transshipmentrequest/delete{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTransshipmentRequest(@PathVariable Long id){
         transshipmentService.deleteRequest(id);
