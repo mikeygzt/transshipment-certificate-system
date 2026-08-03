@@ -16,14 +16,17 @@ import jakarta.validation.Valid;
 import jm.gov.jca.transshipment_api.transshipment_request.dto.TransshipmentDetailsRequest;
 import jm.gov.jca.transshipment_api.transshipment_request.dto.TransshipmentDetailsResponse;
 import jm.gov.jca.transshipment_api.user.UserAccount;
+import jm.gov.jca.transshipment_api.user.dto.UserResponse;
 
 @Service
 public class TransshipmentService {
 
     private final TransshipmentRequestRepository transshipmentRequestRepository;
+    private final RequestMapper requestMapper;
 
-    public TransshipmentService(TransshipmentRequestRepository transshipmentRequestRepository){
+    public TransshipmentService(TransshipmentRequestRepository transshipmentRequestRepository, RequestMapper requestMapper){
         this.transshipmentRequestRepository = transshipmentRequestRepository;
+        this.requestMapper = requestMapper;
 
     }
 
@@ -100,7 +103,13 @@ public TransshipmentDetailsResponse createRequest(TransshipmentDetailsRequest re
     public TransshipmentDetailsResponse getRequest(UUID id){
         //search db for particular request under this id
         //id is a request id
+        TransshipmentRequest request = transshipmentRequestRepository
+            .findById(id)
+            .orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found")
+            );
 
+        return toResponse(request);
     }
 
 
@@ -109,31 +118,31 @@ public TransshipmentDetailsResponse createRequest(TransshipmentDetailsRequest re
     public List<TransshipmentDetailsResponse> getUserRequests(UUID id){
         //search db for all requests under this User
         //id is a user id
-
+        return transshipmentRequestRepository.findByRequesterUserIdId(id)
+            .stream()
+            .map(this::toResponse)
+            .toList();
     }
 
     //Allow for updates to the request
     @Transactional
-    public void updateRequest(@Valid @RequestBody TransshipmentDetailsRequest request){
+    public void updateRequest(@Valid @RequestBody TransshipmentDetailsRequest request) {
         //strip the value of the requestid
         UUID requestId = request.requestId();
-        
-        TransshipmentRequest thisrequest = transshipmentRequestRepository
-        .findByRequesterId(requestId)
-        .orElseThrow(() ->
-            new ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found")
-        );
-
-        
-
-
-
         //Find the request by id
-        //identify the information needed to be changed
-        //replace that information in db
-        //transshipmentRequestRepository.update(request);
 
-    }
+        TransshipmentRequest thisRequest = transshipmentRequestRepository
+            .findById(requestId)
+            .orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found")
+            );
+        //identify the information needed to be changed
+
+        requestMapper.updateEntityFromRequest(request, thisRequest);
+        //replace that information in db
+
+        transshipmentRequestRepository.save(thisRequest);
+}
 
     //Enable reviewers to view the list of general requests
     @Transactional
@@ -141,14 +150,16 @@ public TransshipmentDetailsResponse createRequest(TransshipmentDetailsRequest re
     public List<TransshipmentDetailsResponse> getAllRequests(){
         //currently might not be using json, triple check this
         //update to match
-        return transshipmentRequestRepository.findAll();
+        //return transshipmentRequestRepository.findAll();
+        return transshipmentRequestRepository.findAll().stream().map(this::toResponse).toList();
+
     }
 
     //Delete method
    @Transactional
    public void deleteRequest(UUID requestId){
     TransshipmentRequest request = transshipmentRequestRepository
-        .findByRequesterId(requestId)
+        .findById(requestId)
         .orElseThrow(() ->
             new ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found")
         );

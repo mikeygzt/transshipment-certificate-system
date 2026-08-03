@@ -358,4 +358,93 @@ public Instant getUpdatedAt() {
 public void setStatus(RequestStatus status){
     this.status=status;
 }
+
+public void setRequesterUserId(UserAccount requesterUserId) {
+    this.requesterUserId = requesterUserId;
+}
+
+public void setShippingAgentName(String shippingAgentName) {
+    this.shippingAgentName = shippingAgentName;
+}
+
+public void setAgentCodeJca(String agentCodeJca) {
+    this.agentCodeJca = agentCodeJca;
+}
+
+public void setTrn(String trn) {
+    this.trn = trn;
+}
+
+public void setApplicantName(String applicantName) {
+    this.applicantName = applicantName;
+}
+
+public void setEmailAddress(String emailAddress) {
+    this.emailAddress = emailAddress;
+}
+
+public void setPhoneNumber(String phoneNumber) {
+    this.phoneNumber = phoneNumber;
+}
+
+public void setRequestType(String requestType) {
+    this.requestType = requestType;
+}
+
+public void setPortTerminal(String portTerminal) {
+    this.portTerminal = portTerminal;
+}
+
+public void setPurposeOfCertificate(String purposeOfCertificate) {
+    this.purposeOfCertificate = purposeOfCertificate;
+}
+
+public void setInboundVoyageNo(String inboundVoyageNo) {
+    this.inboundVoyageNo = inboundVoyageNo;
+}
+
+public void setInboundVesselName(String inboundVesselName) {
+    this.inboundVesselName = inboundVesselName;
+}
+
+public void setDateOfArrival(LocalDateTime dateOfArrival) {
+    this.dateOfArrival = dateOfArrival;
+}
+
+public void setOutboundVoyageNumber(String outboundVoyageNumber) {
+    this.outboundVoyageNumber = outboundVoyageNumber;
+}
+
+public void setOutboundVesselName(String outboundVesselName) {
+    this.outboundVesselName = outboundVesselName;
+}
+
+public void setExpectedDepartureDate(LocalDateTime expectedDepartureDate) {
+    this.expectedDepartureDate = expectedDepartureDate;
+}
+
+public void setManifestNumber(String manifestNumber) {
+    this.manifestNumber = manifestNumber;
+}
+
+public void setBillOfLadingWaybill(String billOfLadingWaybill) {
+    this.billOfLadingWaybill = billOfLadingWaybill;
+}
+
+public void setRotationCallReference(String rotationCallReference) {
+    this.rotationCallReference = rotationCallReference;
+}
+
+public void setRemarksInstructions(String remarksInstructions) {
+    this.remarksInstructions = remarksInstructions;
+}
+
+public void setReviewComments(String reviewComments) {
+    this.reviewComments = reviewComments;
+}
+
+public void setPdfCertificatePath(String pdfCertificatePath) {
+    this.pdfCertificatePath = pdfCertificatePath;
+}
+
 }

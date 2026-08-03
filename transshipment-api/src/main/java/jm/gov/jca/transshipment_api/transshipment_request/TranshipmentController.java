@@ -62,10 +62,8 @@ public class TranshipmentController {
 
     @PatchMapping("/update/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public String updateRequest(@Valid @RequestBody TransshipmentDetailsRequest request) {
-        //TODO: process PUT request
-        
-        return entity;
+    public void updateRequest(@Valid @RequestBody TransshipmentDetailsRequest request) {
+        transshipmentService.updateRequest(request);
     }
 
     
