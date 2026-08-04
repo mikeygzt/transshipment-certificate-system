@@ -1,0 +1,23 @@
+<header class="app-header">
+    <a class="brand" routerLink="/">
+        <img 
+            src="/images/jca-logo.png"
+            alt="Jamaica Customs Agency"
+        />
+
+        <span>Transshipment Request Portal</span>
+    </a>
+
+    @if (currentUser(); as user) {
+        <div class="user-actions">
+            <div class="user-details">
+                <span>{{ user.email }}</span>
+                <span>{{ user.role }}</span>
+            </div>
+
+            <button type="button" (click)="logout()" [disabled]="isLoggingOut()">
+                {{ isLoggingOut() ? "Logging out..." : "Log out" }}
+            </button>
+        </div>
+    }
+</header>

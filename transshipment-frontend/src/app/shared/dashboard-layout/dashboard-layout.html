@@ -1,0 +1,53 @@
+<div class="dashboard-page">
+    <app-authenticated-header />
+
+    <div class="dashboard-body">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-top">
+                <h1>Dashboard</h1>
+
+                <nav class="sidebar-navigation">
+                    @switch (role()) {
+                        @case ("REQUESTER") {
+                            <a routerLink="/my-applications" routerLinkActive="active">
+                                <svg
+                                    lucideFileText
+                                    class="nav-icon"
+                                    aria-hidden="true"
+                                ></svg>
+                                My Applications
+                            </a>
+                        }
+
+                        @case ("REVIEWER") {
+                            <a routerLink="/review-queue" routerLinkActive="active">
+                                <svg
+                                    lucideClipboardCheck
+                                    class="nav-icon"
+                                    aria-hidden="true"
+                                ></svg>
+                                Review Queue
+                            </a>
+                        }
+
+                        @case ("ADMIN") {
+                            <a routerLink="/user-governance" routerLinkActive="active">
+                                <svg
+                                    lucideUsers
+                                    class="nav-icon"
+                                    aria-hidden="true"
+                                ></svg>
+                                User Governance
+                            </a>    
+                        }
+                    }
+                </nav>
+            </div>
+        </aside>
+
+        <main class="dashboard-content">
+            <!-- Dejone add your section here -->
+             <ng-content />
+        </main>
+    </div>
+</div>

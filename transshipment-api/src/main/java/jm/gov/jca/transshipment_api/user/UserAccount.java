@@ -1,7 +1,7 @@
 package jm.gov.jca.transshipment_api.user;
 
 import jakarta.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -69,7 +69,7 @@ public class UserAccount {
         nullable = false,
         updatable = false
     )
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt;
 
     protected UserAccount(){}
 
@@ -94,7 +94,7 @@ public class UserAccount {
     // Adding 'created_at' & 'pending_confirmation' before the entity is saved to the database
     @PrePersist
     void beforeInsert(){
-        this.createdAt = OffsetDateTime.now();
+        this.createdAt = LocalDateTime.now();
     }
     
     public UUID getId(){
@@ -133,7 +133,7 @@ public class UserAccount {
         return status;
     }
 
-    public OffsetDateTime getCreatedAt(){
+    public LocalDateTime getCreatedAt(){
         return createdAt;
     }
 
