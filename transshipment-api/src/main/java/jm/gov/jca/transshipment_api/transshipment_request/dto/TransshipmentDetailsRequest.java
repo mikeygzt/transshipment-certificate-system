@@ -41,8 +41,7 @@ public record TransshipmentDetailsRequest(
     String inboundVoyageNo,
 
     String inboundVesselName,
-    
-    @NotBlank
+
     LocalDate dateOfArrival,
     
     @NotBlank
