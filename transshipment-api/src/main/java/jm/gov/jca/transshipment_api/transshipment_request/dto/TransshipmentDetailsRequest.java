@@ -1,5 +1,6 @@
 package jm.gov.jca.transshipment_api.transshipment_request.dto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -11,6 +12,7 @@ import jm.gov.jca.transshipment_api.user.UserAccount;
 public record TransshipmentDetailsRequest(
     UUID requestId,
 
+    //Swap to UUID once datetime issue is resolved
     UserAccount requesterUserId,
     
     String shippingAgentName,
@@ -37,12 +39,11 @@ public record TransshipmentDetailsRequest(
     @NotBlank
     @Size(max = 100)
     String inboundVoyageNo,
-    
-    @NotBlank
+
     String inboundVesselName,
     
     @NotBlank
-    LocalDateTime dateOfArrival,
+    LocalDate dateOfArrival,
     
     @NotBlank
     @Size(max = 100)
@@ -50,9 +51,8 @@ public record TransshipmentDetailsRequest(
     
     @NotBlank
     String outboundVesselName,
-    
-    @NotBlank
-    LocalDateTime expectedDepartureDate,
+
+    LocalDate expectedDepartureDate,
     
     @NotBlank
     String manifestNumber,
@@ -64,7 +64,6 @@ public record TransshipmentDetailsRequest(
 
     String remarksInstructions,
 
-    @NotBlank
     RequestStatus status,
 
     String reviewComments,
