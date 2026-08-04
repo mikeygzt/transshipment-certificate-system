@@ -16,7 +16,7 @@ import jakarta.persistence.Table;
 @Table(name="Container Details")
 public class ContainerDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID containerId;
 
     @ManyToOne

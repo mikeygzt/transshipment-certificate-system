@@ -22,7 +22,7 @@ import jm.gov.jca.transshipment_api.user.UserAccount;
 @Table(name ="transhipment_requests")
 public class TransshipmentRequest {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID requestId;
 
     @ManyToOne(optional = false)
