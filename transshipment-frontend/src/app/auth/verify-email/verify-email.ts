@@ -2,11 +2,12 @@ import { ChangeDetectorRef, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../auth.service';
 import { finalize } from 'rxjs';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-verify-email',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './verify-email.html',
   styleUrl: './verify-email.css',
 })
@@ -17,12 +18,14 @@ export class VerifyEmail {
   private readonly changeDetector = inject(ChangeDetectorRef);
 
   isSubmitting = false;
-  verificationComplete = false;
   errorMessage = "";
 
   isResending = false;
   resendMessage = "";
   resendCooldownActive = false;
+
+  successMessage = "";
+  showLoginLink = false;
 
   readonly form = this.formBuilder.nonNullable.group({
     email: [
@@ -58,19 +61,46 @@ export class VerifyEmail {
 
     this.isSubmitting = true;
     this.errorMessage = "";
+    this.showLoginLink = false;
 
     this.authService.verifyEmail(this.form.getRawValue())
       .pipe(
         finalize(() => {
           this.isSubmitting = false;
+          this.changeDetector.markForCheck();
         })
       )
       .subscribe({
         next: () => {
-          this.verificationComplete = true;
+          this.resendMessage = "";
+          this.errorMessage = "";
+
+          this.successMessage = "Your email address was verified successfully";
+          this.showLoginLink = true;
+          this.form.disable();
+          this.changeDetector.markForCheck();
         },
-        error: () => {
-          this.errorMessage = "The verification code is invalid or has expired.";
+        error: (error: HttpErrorResponse) => {
+          //temp
+          console.error("Verification error", {
+            status: error.status,
+            body: error.error
+          })
+          this.successMessage = "";
+          this.resendMessage = "";
+
+          if(error.status === 409) {
+            this.errorMessage = "This email address has already been verified. Sign in.";
+            this.showLoginLink = true;
+          } else if (error.status === 400) {
+            this.errorMessage = "The email address or verification code is invalid or has expired.";
+            this.showLoginLink = false;
+          } else {
+            this.errorMessage = "We could not verify your account. Please try again.";
+            this.showLoginLink = false;
+          }
+
+          this.changeDetector.markForCheck();
         }
       });
   }
@@ -112,5 +142,12 @@ export class VerifyEmail {
           this.errorMessage = "We could not resend the verification code."
         }
       });
+  }
+
+  clearVerificationMessages(): void {
+    this.errorMessage = "";
+    this.successMessage = "";
+    this.resendMessage = "";
+    this.showLoginLink = false;
   }
 }

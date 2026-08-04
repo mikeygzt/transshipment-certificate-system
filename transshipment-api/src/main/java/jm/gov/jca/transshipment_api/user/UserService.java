@@ -149,11 +149,11 @@ public class UserService {
         UserAccount user = userRepository
             .findByEmailIgnoreCase(email)
             .orElseThrow(() ->
-                new IllegalArgumentException("User not found")
+                new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found")
             );
 
         if (user.getStatus() == Status.ACTIVE) {
-            throw new IllegalArgumentException("Account is already verified");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Account is already verified");
         }
 
         emailVerificationService.verifyCode(user, code);
