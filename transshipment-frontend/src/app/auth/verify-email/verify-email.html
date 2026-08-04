@@ -1,0 +1,94 @@
+<div class="verify-page">
+    <main class="verify-container">
+        <img 
+            class="verify-logo"
+            src="/images/jca-logo.png"
+            alt="Jamaica Customs Agency"
+        />
+
+        <h1>Check your email</h1>
+
+        <p class="verify-description">
+            Confirm your email address by entering the six-digit code sent to your email.
+        </p>
+
+        <form
+            class="verify-form"
+            [formGroup]="form"
+            (ngSubmit)="submit()"
+            (input)="clearVerificationMessages()"
+        >
+            <div class="form-field">
+                <label for="email">Email address</label>
+                <input 
+                    id="email"
+                    type="email"
+                    autocomplete="email"
+                    formControlName="email"
+                    placeholder="Enter your email address"
+                />
+
+                @if (form.controls.email.touched && form.controls.email.invalid) {
+                    <small class="field-error">Enter a valid email address.</small>
+                }
+            </div>
+            <div class="form-field">
+                <label for="code">Code</label>
+
+                <input 
+                    id="code"
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    maxlength="6"
+                    formControlName="code"
+                    placeholder="Enter your six-digit code"
+                >
+
+                @if (form.controls.code.touched && form.controls.code.invalid) {
+                    <small class="field-error">Enter your six-digit verification code.</small>
+                } 
+            </div>
+
+            @if (errorMessage) {
+                <p class="error-message">{{ errorMessage }}</p>
+
+                @if (showLoginLink) {
+                    <a routerLink="/login" class="message-link">Go to sign in</a>
+                }
+            }
+
+            @if (resendMessage) {
+                <p class="status-message success-message">{{ resendMessage }}</p>
+            }
+
+            @if (successMessage) {
+                <p class="status-message success-message">{{ successMessage }}</p>
+
+                @if (showLoginLink){
+                    <a routerLink="/login" class="message-link">Sign in</a>
+                }
+            }
+
+            <button 
+                class="continue-button" 
+                type="submit" 
+                [disabled]="form.invalid || isSubmitting">
+                {{ isSubmitting ? "Verifying..." : "Continue" }}
+            </button>
+        </form>
+
+        <div class="resend-row">
+            <span>Didn't get the code?</span>
+
+            <button
+                type="button"
+                class="resend-button"
+                (click)="resendCode()"
+                [disabled]="isResending || resendCooldownActive"
+            >
+            {{ isResending ? "Sending..." : "Resend" }}
+            </button>
+        </div>
+    </main>
+</div>

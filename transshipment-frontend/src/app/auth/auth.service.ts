@@ -41,7 +41,7 @@ export class AuthService {
     resendVerification(email: string): Observable<void>{
         return this.withCsrf(() => 
             this.http.post<void>(`${this.authUrl}/resend-verification`, 
-            email
+            { email }
             )
         );
     }

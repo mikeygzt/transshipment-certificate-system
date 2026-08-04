@@ -1,6 +1,6 @@
 package jm.gov.jca.transshipment_api.auth.verification;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -29,16 +29,16 @@ public class EmailVerificationCode {
     private String codeHash;
 
     @Column(nullable = false)
-    private OffsetDateTime expiresAt;
+    private LocalDateTime expiresAt;
 
-    @Column OffsetDateTime usedAt;
+    @Column LocalDateTime usedAt;
 
     protected EmailVerificationCode(){}
 
     public EmailVerificationCode(
         UserAccount user, 
         String codeHash, 
-        OffsetDateTime expiresAt
+        LocalDateTime expiresAt
     ){
         
         this.user = user;
@@ -58,15 +58,15 @@ public class EmailVerificationCode {
         return this.codeHash;
     }
 
-    public OffsetDateTime getExpiresAt(){
+    public LocalDateTime getExpiresAt(){
         return this.expiresAt;
     }
 
-    public OffsetDateTime getUsedAt(){
+    public LocalDateTime getUsedAt(){
         return this.usedAt;
     }
     
-    public void setUsedAt(OffsetDateTime usedAt){
+    public void setUsedAt(LocalDateTime usedAt){
         this.usedAt = usedAt;
     }
 }
