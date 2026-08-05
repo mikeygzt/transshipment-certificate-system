@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../auth.service';
 import { finalize } from 'rxjs';
 import { Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-register',
@@ -16,6 +17,7 @@ export class Register {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   isSubmitting = false;
   errorMessage = "";
@@ -86,6 +88,7 @@ export class Register {
       .pipe(
         finalize(() => {
           this.isSubmitting = false;
+          this.changeDetector.markForCheck();
         })
       )
       .subscribe({
@@ -96,8 +99,14 @@ export class Register {
             }
           })
         },
-        error: () => {
-          this.errorMessage = "Registration failed. Please check your information and try again.";
+        error: (error: HttpErrorResponse) => {
+          if(error.status == 409){
+            this.errorMessage = "An account with this email already exists.";
+          } else {
+            this.errorMessage = "We could not create your account. Please try again.";
+          }
+
+          this.changeDetector.markForCheck();
         }
       });
   }
@@ -108,6 +117,10 @@ export class Register {
     // Slices the number up from 0 to 3, (000), 3 to 6, (000), then 6 to 10, (0000)
     // then returns 000-000-0000
     return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  }
+
+  clearErrorMessage(): void {
+    this.errorMessage = "";
   }
 
 }

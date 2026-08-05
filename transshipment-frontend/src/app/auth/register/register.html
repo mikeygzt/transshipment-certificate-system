@@ -11,7 +11,7 @@
 
             <p class="auth-subtitle">Create an account to submit & manage transshipment request forms.</p>      
 
-            <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+            <form class="auth-form" [formGroup]="form" (input)="clearErrorMessage()" (ngSubmit)="submit()">
     
                 <div class="form-field">
                     <label for="fullName">Applicant Name</label>
@@ -125,8 +125,8 @@
         <div class="image-overlay"></div>
 
         <img 
-            src="/transshipment-frontend/public/images/register-side-image.jfif"
-            alt=""
+            src="/images/register-side-image.png"
+            alt="Register Side Image"
         />
 
         <div class="image-caption">

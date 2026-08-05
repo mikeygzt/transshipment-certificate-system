@@ -156,6 +156,8 @@ public class AuthController {
         VerifyEmailRequest request
     )
     {
+        // temp
+        System.out.println("VERIFY EMAIL CONTROLLER REACHED");
         userService.verifyEmail(request.email(), request.code());
 
         return ResponseEntity.noContent().build();

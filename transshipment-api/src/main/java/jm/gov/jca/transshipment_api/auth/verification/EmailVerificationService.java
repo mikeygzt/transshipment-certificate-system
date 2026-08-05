@@ -4,9 +4,12 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import jm.gov.jca.transshipment_api.user.Status;
 import jm.gov.jca.transshipment_api.user.UserAccount;
 
 @Service
@@ -66,6 +69,10 @@ public class EmailVerificationService {
 
     public void verifyCode(UserAccount user, String submittedCode){
 
+        if(user.getStatus() == Status.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "This email address has already been verified.");
+        }
+
         EmailVerificationCode verification = verificationRepository
 
             // This finds the first record from the user, (findByTopUser)
@@ -73,15 +80,15 @@ public class EmailVerificationService {
             // and put the latest code first if there are multiple (OrderByExpiresAtDesc)
             .findTopByUserAndUsedAtIsNullOrderByExpiresAtDesc(user)
             .orElseThrow(() -> 
-                new IllegalArgumentException("No verification code found")
+                new ResponseStatusException(HttpStatus.BAD_REQUEST, "The verification code is invalid or has expired")
         );
 
         if (verification.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Verification code has expired");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The verification code is invalid or has expired");
         }
 
         if(!passwordEncoder.matches(submittedCode, verification.getCodeHash())) {
-            throw new IllegalArgumentException("Invalid verification code");
+           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The verification code is invalid or has expired");
         }
 
         verification.setUsedAt(LocalDateTime.now());
