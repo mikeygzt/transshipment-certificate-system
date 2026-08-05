@@ -1,6 +1,7 @@
 package jm.gov.jca.transshipment_api.transshipment_request;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
@@ -113,7 +114,7 @@ public class TransshipmentRequest {
         nullable = false,
         name = "date of arrival"
     )
-    private LocalDateTime dateOfArrival;
+    private LocalDate dateOfArrival;
 
     @Column(
         nullable = false,
@@ -133,7 +134,7 @@ public class TransshipmentRequest {
         nullable = false,
         name = "expected_departure_date"
     )
-    private LocalDateTime expectedDepartureDate;
+    private LocalDate expectedDepartureDate;
 
     @Column(
         nullable = false,
@@ -201,7 +202,7 @@ public class TransshipmentRequest {
     )
     private Instant updatedAt;
 
-    
+    protected  TransshipmentRequest(){}
     
     public TransshipmentRequest(
     UserAccount requesterUserId,
@@ -216,10 +217,10 @@ public class TransshipmentRequest {
     String purposeOfCertificate,
     String inboundVoyageNo,
     String inboundVesselName,
-    LocalDateTime dateOfArrival,
+    LocalDate dateOfArrival,
     String outboundVoyageNumber,
     String outboundVesselName,
-    LocalDateTime expectedDepartureDate,
+    LocalDate expectedDepartureDate,
     String manifestNumber,
     String billOfLadingWaybill,
     String rotationCallReference,
@@ -303,7 +304,7 @@ public String getInboundVesselName() {
     return inboundVesselName;
 }
 
-public LocalDateTime getDateOfArrival() {
+public LocalDate getDateOfArrival() {
     return dateOfArrival;
 }
 
@@ -315,7 +316,7 @@ public String getOutboundVesselName() {
     return outboundVesselName;
 }
 
-public LocalDateTime getExpectedDepartureDate() {
+public LocalDate getExpectedDepartureDate() {
     return expectedDepartureDate;
 }
 
@@ -407,7 +408,7 @@ public void setInboundVesselName(String inboundVesselName) {
     this.inboundVesselName = inboundVesselName;
 }
 
-public void setDateOfArrival(LocalDateTime dateOfArrival) {
+public void setDateOfArrival(LocalDate dateOfArrival) {
     this.dateOfArrival = dateOfArrival;
 }
 
@@ -419,7 +420,7 @@ public void setOutboundVesselName(String outboundVesselName) {
     this.outboundVesselName = outboundVesselName;
 }
 
-public void setExpectedDepartureDate(LocalDateTime expectedDepartureDate) {
+public void setExpectedDepartureDate(LocalDate expectedDepartureDate) {
     this.expectedDepartureDate = expectedDepartureDate;
 }
 

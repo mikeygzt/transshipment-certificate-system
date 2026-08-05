@@ -13,7 +13,7 @@ public record TransshipmentDetailsRequest(
     UUID requestId,
 
     //Swap to UUID once datetime issue is resolved
-    UserAccount requesterUserId,
+    UUID requesterUserId,
     
     String shippingAgentName,
     

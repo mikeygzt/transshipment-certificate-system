@@ -48,12 +48,12 @@ public class TranshipmentController {
         return transshipmentService.getAllRequests();
     }
 
-    @GetMapping("/my-applications")
+    @GetMapping("/my-applications/{id}")
     public List<TransshipmentDetailsResponse> getUserRequests(@PathVariable UUID id) {
         return transshipmentService.getUserRequests(id);
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public TransshipmentDetailsResponse getRequest(@PathVariable UUID id) {
         return transshipmentService.getRequest(id);
     }
@@ -62,8 +62,9 @@ public class TranshipmentController {
 
     @PatchMapping("/update/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void updateRequest(@Valid @RequestBody TransshipmentDetailsRequest request) {
-        transshipmentService.updateRequest(request);
+    public void updateRequest(@PathVariable UUID id, @Valid @RequestBody TransshipmentDetailsRequest request) {
+        //better to add on the id of the request then the new request
+        transshipmentService.updateRequest(id, request);
     }
 
     

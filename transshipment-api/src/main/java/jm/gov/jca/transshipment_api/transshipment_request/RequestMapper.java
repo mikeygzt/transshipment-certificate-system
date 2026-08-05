@@ -11,10 +11,12 @@ import jm.gov.jca.transshipment_api.transshipment_request.dto.TransshipmentDetai
     componentModel = "spring",
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE //Ignore the value of the nulled parameters
 )
-public interface RequestMapper {
+public interface RequestMapper{
 
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "requesterUserId", ignore = true)
     void updateEntityFromRequest(TransshipmentDetailsRequest request, @MappingTarget TransshipmentRequest entity);
+
 
     
 }

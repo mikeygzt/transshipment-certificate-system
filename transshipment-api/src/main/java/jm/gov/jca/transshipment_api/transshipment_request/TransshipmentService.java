@@ -5,10 +5,12 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import jm.gov.jca.transshipment_api.user.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -23,52 +25,60 @@ public class TransshipmentService {
 
     private final TransshipmentRequestRepository transshipmentRequestRepository;
     private final RequestMapper requestMapper;
+    private final UserRepository userRepository;
 
-    public TransshipmentService(TransshipmentRequestRepository transshipmentRequestRepository, RequestMapper requestMapper){
+    public TransshipmentService(TransshipmentRequestRepository transshipmentRequestRepository, RequestMapper requestMapper, UserRepository userRepository){
         this.transshipmentRequestRepository = transshipmentRequestRepository;
         this.requestMapper = requestMapper;
+        this.userRepository = userRepository;
+
 
     }
 
     //Create New Request
-@Transactional
-public TransshipmentDetailsResponse createRequest(TransshipmentDetailsRequest request) {
-    //create a response entity
-    //TransshipmentDetailsResponse newrequest= createRequest(request);
-    //refactoring note: old ver was  creating a copy, should be actually saving to the db. create it so that there is an entity being passed
-    //return transshipmentRequestRepository.save(request);
-    TransshipmentRequest entity = new TransshipmentRequest(
-        request.requesterUserId(),
-        request.shippingAgentName(),
-        request.agentCodeJca(),
-        request.trn(),
-        request.applicantName(),
-        request.emailAddress(),
-        request.phoneNumber(),
-        request.requestType(),
-        request.portTerminal(),
-        request.purposeOfCertificate(),
-        request.inboundVoyageNo(),
-        request.inboundVesselName(),
-        request.dateOfArrival(),
-        request.outboundVoyageNumber(),
-        request.outboundVesselName(),
-        request.expectedDepartureDate(),
-        request.manifestNumber(),
-        request.billOfLadingWaybill(),
-        request.rotationCallReference(),
-        request.remarksInstructions(),
-        request.reviewComments(),
-        request.pdfCertificatePath()
-    );
+    @Transactional
+    public TransshipmentDetailsResponse createRequest(TransshipmentDetailsRequest request) {
+        //create a response entity
+        //TransshipmentDetailsResponse newrequest= createRequest(request);
+        //refactoring note: old ver was  creating a copy, should be actually saving to the db. create it so that there is an entity being passed
+        //return transshipmentRequestRepository.save(request);
 
-    entity.setStatus(RequestStatus.SUBMITTED);
+        UserAccount requester = userRepository.findById(request.requesterUserId())
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+                );
 
-    TransshipmentRequest savedRequest = transshipmentRequestRepository.save(entity);
+        TransshipmentRequest entity = new TransshipmentRequest(
+                requester,
+                request.shippingAgentName(),
+                request.agentCodeJca(),
+                request.trn(),
+                request.applicantName(),
+                request.emailAddress(),
+                request.phoneNumber(),
+                request.requestType(),
+                request.portTerminal(),
+                request.purposeOfCertificate(),
+                request.inboundVoyageNo(),
+                request.inboundVesselName(),
+                request.dateOfArrival(),
+                request.outboundVoyageNumber(),
+                request.outboundVesselName(),
+                request.expectedDepartureDate(),
+                request.manifestNumber(),
+                request.billOfLadingWaybill(),
+                request.rotationCallReference(),
+                request.remarksInstructions(),
+                request.reviewComments(),
+                request.pdfCertificatePath()
+        );
 
-    return toResponse(savedRequest);
+        entity.setStatus(RequestStatus.SUBMITTED);
 
-}
+        TransshipmentRequest savedRequest = transshipmentRequestRepository.save(entity);
+
+        return toResponse(savedRequest);
+    }
 
     private TransshipmentDetailsResponse toResponse(TransshipmentRequest request){
         return new TransshipmentDetailsResponse(
@@ -126,13 +136,12 @@ public TransshipmentDetailsResponse createRequest(TransshipmentDetailsRequest re
 
     //Allow for updates to the request
     @Transactional
-    public void updateRequest(@Valid @RequestBody TransshipmentDetailsRequest request) {
+    public void updateRequest(UUID id, TransshipmentDetailsRequest request) {
         //strip the value of the requestid
-        UUID requestId = request.requestId();
         //Find the request by id
 
         TransshipmentRequest thisRequest = transshipmentRequestRepository
-            .findById(requestId)
+            .findById(id)
             .orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found")
             );
@@ -140,6 +149,13 @@ public TransshipmentDetailsResponse createRequest(TransshipmentDetailsRequest re
 
         requestMapper.updateEntityFromRequest(request, thisRequest);
         //replace that information in db
+        if (request.requesterUserId() != null) {
+            UserAccount requester = userRepository.findById(request.requesterUserId())
+                    .orElseThrow(() ->
+                            new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+                    );
+            thisRequest.setRequesterUserId(requester);
+        }
 
         transshipmentRequestRepository.save(thisRequest);
 }

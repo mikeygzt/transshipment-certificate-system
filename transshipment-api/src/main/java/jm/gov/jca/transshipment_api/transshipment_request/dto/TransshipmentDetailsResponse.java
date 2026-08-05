@@ -1,6 +1,7 @@
 package jm.gov.jca.transshipment_api.transshipment_request.dto;
 
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
@@ -10,6 +11,7 @@ import jm.gov.jca.transshipment_api.transshipment_request.RequestStatus;
 import jm.gov.jca.transshipment_api.user.UserAccount;
 
 public record TransshipmentDetailsResponse(
+        //handle the UserAccount here since it is outgoing
     UserAccount requesterUserId,
     String shippingAgentName,
     String agentCodeJca,
@@ -22,10 +24,10 @@ public record TransshipmentDetailsResponse(
     String purposeOfCertificate,
     String inboundVoyageNo,
     String inboundVesselName,
-    LocalDateTime dateOfArrival,
+    LocalDate dateOfArrival,
     String outboundVoyageNumber,
     String outboundVesselName,
-    LocalDateTime expectedDepartureDate,
+    LocalDate expectedDepartureDate,
     String manifestNumber,
     String billOfLadingWaybill,
     String rotationCallReference,
