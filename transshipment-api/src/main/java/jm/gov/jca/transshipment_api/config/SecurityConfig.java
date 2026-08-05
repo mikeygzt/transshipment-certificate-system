@@ -36,7 +36,7 @@ public class SecurityConfig {
         SecurityContextRepository SecurityContextRepository) throws Exception {
             http
                 .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.spa())
+                .csrf(csrf -> csrf.disable())
 
                 .securityContext(context -> 
                     context.securityContextRepository(SecurityContextRepository)
@@ -58,13 +58,14 @@ public class SecurityConfig {
                     ).permitAll()
 
                     .requestMatchers("/api/admin/**")
-                    .hasRole("ADMIN")
+                                .permitAll()
+//                    .hasRole("ADMIN")
 
                     .requestMatchers("/api/**")
-                    .authenticated()
+                    .permitAll()
 
                     .anyRequest()
-                    .denyAll()
+                    .permitAll()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
