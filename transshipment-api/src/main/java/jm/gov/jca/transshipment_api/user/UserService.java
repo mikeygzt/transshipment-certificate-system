@@ -67,7 +67,8 @@ public class UserService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getAllUsers(){
-        return userRepository.findAll()
+        return userRepository
+            .findAllByOrderByCreatedAtDesc()
             .stream()
             .map(this::toResponse)
             .toList();

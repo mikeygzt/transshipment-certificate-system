@@ -35,4 +35,5 @@ export interface UserResponse {
     email: string;
     role: UserRole;
     status: UserStatus;   
+    createdAt: string;
 }
