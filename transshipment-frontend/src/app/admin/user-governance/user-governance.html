@@ -155,9 +155,40 @@
                         <h3>Profile information</h3>
 
                         <dl class="details-list">
-                            <div class="detail-item">
+                            <div class="detail-item editable-detail">
                                 <dt>Full name</dt>
-                                <dd>{{ user.fullName }}</dd>
+                                <dd>
+                                    @if (isEditingFullName()) {
+                                        <div class="edit-field">
+                                            <input 
+                                                type="text"
+                                                [formControl]="fullNameControl"
+                                                aria-label="Full name"
+                                            />
+
+                                            @if (fullNameControl.touched && fullNameControl.invalid) {
+                                                <small class="field-error">
+                                                    Enter a valid full name.
+                                                </small>
+                                            }
+                                        </div>
+                                    } @else {
+                                        <span>{{ user.fullName }}</span>
+                                    }
+
+                                    <button
+                                        type="button"
+                                        class="edit-button"
+                                        aria-label="Edit full name"
+                                        (click)="editFullName()"
+                                    >
+                                        <svg
+                                            lucideSquarePen
+                                            aria-hidden="true"
+                                        ></svg>
+
+                                    </button>
+                                </dd>
                             </div>
 
                             <div class="detail-item">
@@ -213,6 +244,35 @@
                         </dl>
                     </section>
                 </div>
+
+                @if (saveErrorMessage() && isEditingFullName()) {
+                    <span class="save-error">{{ saveErrorMessage() }}</span>
+                }
+
+                @if (hasFullNameChanges()) {
+                    <div class="drawer-change-bar">
+                        <span>You have unsaved changes</span>
+
+                        <div class="change-actions">
+                            <button
+                                type="button"
+                                class="cancel-button"
+                                (click)="cancelChanges()"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                class="save-button"
+                                [disabled]="fullNameControl.invalid"
+                                (click)="saveChanges()"
+                            >
+                                {{ isSaving() ? "Saving..." : "Save changes" }}
+                            </button>
+                        </div>
+                    </div>
+                }
             </aside>
         </div>
     }
