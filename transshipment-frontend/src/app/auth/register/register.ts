@@ -29,7 +29,9 @@ export class Register {
       "",
       [
         Validators.required,
-        Validators.pattern('[a-zA-Z ]*')
+        Validators.maxLength(100),
+        Validators.minLength(5),
+        Validators.pattern('[a-zA-Z ]*'),
       ]
     ],
     telephone: [

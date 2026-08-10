@@ -1,1 +1,280 @@
-<app-dashboard-layout [role]="'ADMIN'"></app-dashboard-layout>
+<app-dashboard-layout [role]="'ADMIN'">
+    <section class="governance-page">
+        <header class="page-header">
+            <div>
+                <h1>User Governance</h1>
+                
+                <p>Manage user profiles, account roles, and statuses.</p>
+            </div>
+        </header>
+
+        <div class="governance-toolbar">
+            <label class="search-control">
+                <svg
+                    lucideSearch
+                    class="search-icon"
+                    aria-hidden="true"
+                ></svg>
+
+                <input 
+                    type="search"
+                    placeholder="Search by name, email or TRN"
+                    aria-label="Search users"
+                    (input)="updateSearch($event)"
+                />
+            </label>
+
+            <button type="button" class="filter-button">
+                <svg
+                    lucideListFilter
+                    class="button-icon"
+                    aria-hidden="true"
+                ></svg>
+
+                <span>Filter</span>
+            </button>
+        </div>
+
+        @if (isLoading()) {
+            <div class="page-state">
+                <p>Laoding user accounts...</p>
+            </div>
+        } @else if (errorMessage()) {
+            <div class="page-state error-stte">
+                <p>{{ errorMessage() }}</p>
+            </div>
+        } @else {
+            <div class="table-container">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">User</th>
+                            <th scope="col">TRN</th>
+                            <th scope="col">Role</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Created</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @for (user of filteredUsers(); track user.id) {
+                            <tr class="user-row"
+                                [class.selected-row]="selectedUser()?.id === user.id"
+                                (click)="openUserDetails(user)"
+                            >
+                                <td>
+                                    <div class="user-identity">
+                                        <span class="user-avatar" aria-hidden="true">
+                                            {{ user.fullName.charAt(0).toUpperCase() }}
+                                        </span>
+
+                                        <div>
+                                            <strong>{{ user.fullName }}</strong>
+                                            <strong>{{ user.email }}</strong>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    {{ user.companyTRN || "-" }}
+                                </td>
+
+                                <td>
+                                    <span class="role-label">
+                                        {{ user.role }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span 
+                                    class="status=badge" 
+                                    [class.active-status]="user.status === 'ACTIVE'"
+                                    [class.pending-status]="user.status === 'PENDING_CONFIRMATION'"
+                                    [class.deactivated-status]="user.status === 'DEACTIVATED'">
+                                        {{ user.status === "PENDING_CONFIRMATION" ? "Pending" : user.status }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    {{ user.createdAt }}
+                                </td>
+                            </tr>
+                        } @empty {
+                            <tr>
+                                <td colspan="5" class="empty-result">No users match your search.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+    </section>
+
+    @if (selectedUser(); as user) {
+        <div class="drawer-backdrop" (click)="closeUserDetails()">
+            <aside
+                class="details-drawer"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="drawer-title"
+                (click)="$event.stopPropagation()"
+            >
+                <header class="drawer-header">
+                    <div>
+                        <span class="drawer-label">User account</span>
+                        <h2 id="drawer-title">User Details</h2>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="drawer-close-button"
+                        aria-label="Close user details"
+                        (click)="closeUserDetails()"
+                    >
+                        <svg
+                            lucideX
+                            aria-hidden="true"
+                        ></svg>
+                    </button>
+                </header>
+
+                <section class="drawer-user-summary">
+                    <span class="drawer-avatar" aria-hidden="true">
+                        {{ user.fullName.charAt(0).toUpperCase() }}
+                    </span>
+
+                    <div>
+                        <h3>{{ user.fullName }}</h3>
+                        <p>{{ user.email }}</p>
+                    </div>
+                </section>
+
+                <div class="drawer-content">
+                    <section class="details-section">
+                        <h3>Profile information</h3>
+
+                        <dl class="details-list">
+                            <div class="detail-item editable-detail">
+                                <dt>Full name</dt>
+                                <dd>
+                                    @if (isEditingFullName()) {
+                                        <div class="edit-field">
+                                            <input 
+                                                type="text"
+                                                [formControl]="fullNameControl"
+                                                aria-label="Full name"
+                                            />
+
+                                            @if (fullNameControl.touched && fullNameControl.invalid) {
+                                                <small class="field-error">
+                                                    Enter a valid full name.
+                                                </small>
+                                            }
+                                        </div>
+                                    } @else {
+                                        <span>{{ user.fullName }}</span>
+                                    }
+
+                                    <button
+                                        type="button"
+                                        class="edit-button"
+                                        aria-label="Edit full name"
+                                        (click)="editFullName()"
+                                    >
+                                        <svg
+                                            lucideSquarePen
+                                            aria-hidden="true"
+                                        ></svg>
+
+                                    </button>
+                                </dd>
+                            </div>
+
+                            <div class="detail-item">
+                                <dt>Email address</dt>
+                                <dd>{{ user.email }}</dd>
+                            </div>
+
+                            <div class="detail-item">
+                                <dt>Telephone</dt>
+                                <dd>{{ user.telephone || "Not provided" }}</dd>
+                            </div>
+
+                            <div class="detail-item">
+                                <dt>Company TRN</dt>
+                                <dd>{{ user.companyTRN || "Not provided" }}</dd>
+                            </div>
+
+                            <div class="detail-item">
+                                <dt>Shipping Agent</dt>
+                                <dd>{{ user.shippingAgentName || "Not provided" }}</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <section class="details-section">
+                        <h3>Account information</h3>
+
+                        <dl class="details-list">
+                            <div class="detail-item">
+                                <dt>Role</dt>
+                                <dd>{{ user.role }}</dd>
+                            </div>
+
+                            <div class="detail-item">
+                                <dt>Status</dt>
+                                <dd>
+                                    <span
+                                        class="status-badge"
+                                        [class.active-status]="user.status === 'ACTIVE'"
+                                        [class.pending-status]="user.status === 'PENDING_CONFIRMATION'"
+                                        [class.deactivated-status]="user.status === 'DEACTIVATED'"
+                                    >
+                                        {{ user.status === "PENDING_CONFIRMATION" ? "Pending" : user.status }}
+                                    </span>
+                                </dd>
+                            </div>
+
+                            <div class="detail-item">
+                                <dt>Created</dt>
+                                <dd>{{ user.createdAt }}</dd>
+                            </div>
+
+                        </dl>
+                    </section>
+                </div>
+
+                @if (saveErrorMessage() && isEditingFullName()) {
+                    <span class="save-error">{{ saveErrorMessage() }}</span>
+                }
+
+                @if (hasChanges()) {
+                    <div class="drawer-change-bar">
+                        <span>You have unsaved changes</span>
+
+                        <div class="change-actions">
+                            <button
+                                type="button"
+                                class="cancel-button"
+                                (click)="cancelChanges()"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                class="save-button"
+                                [disabled]="fullNameControl.invalid"
+                                (click)="saveChanges()"
+                            >
+                                {{ isSaving() ? "Saving..." : "Save changes" }}
+                            </button>
+                        </div>
+                    </div>
+                }
+            </aside>
+        </div>
+    }
+
+</app-dashboard-layout>

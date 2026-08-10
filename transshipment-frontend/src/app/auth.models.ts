@@ -22,8 +22,14 @@ export interface LoginRequest {
 }
 
 export interface AuthenticatedUser {
+    id: string;
+    fullName: string;
+    telephone: string;
+    companyTRN: string;
+    shippingAgentName: string;
     email: string;
     role: UserRole;
+    status: UserStatus;
 }
 
 export interface UserResponse {
@@ -35,4 +41,5 @@ export interface UserResponse {
     email: string;
     role: UserRole;
     status: UserStatus;   
+    createdAt: string;
 }

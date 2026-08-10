@@ -91,7 +91,7 @@ public class UserAccount {
         this.role = role;
     }
 
-    // Adding 'created_at' & 'pending_confirmation' before the entity is saved to the database
+    // Adding 'created_at' before the entity is saved to the database
     @PrePersist
     void beforeInsert(){
         this.createdAt = LocalDateTime.now();
@@ -135,6 +135,34 @@ public class UserAccount {
 
     public LocalDateTime getCreatedAt(){
         return createdAt;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    
+    public void setPassword(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public void setCompanyTrn(String companyTrn) {
+        this.companyTRN = companyTrn;
+    }
+
+    public void setShippingAgentName(String shippingAgentName){
+        this.shippingAgentName = shippingAgentName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public void setTelephone(String telephone) {
+        this.telephone = telephone;
     }
 
     public void setStatus(Status status){

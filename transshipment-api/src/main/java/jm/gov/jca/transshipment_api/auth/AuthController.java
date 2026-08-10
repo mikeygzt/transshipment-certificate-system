@@ -1,6 +1,7 @@
 package jm.gov.jca.transshipment_api.auth;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,26 +10,31 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jm.gov.jca.transshipment_api.auth.dto.AuthResponse;
+import jm.gov.jca.transshipment_api.auth.dto.CurrentUserResponse;
 import jm.gov.jca.transshipment_api.auth.dto.LoginRequest;
 import jm.gov.jca.transshipment_api.auth.dto.ResendVerificationRequest;
 import jm.gov.jca.transshipment_api.auth.dto.VerifyEmailRequest;
+import jm.gov.jca.transshipment_api.user.UserAccount;
+import jm.gov.jca.transshipment_api.user.UserRepository;
 import jm.gov.jca.transshipment_api.user.UserService;
+import jm.gov.jca.transshipment_api.user.dto.AdminUpdateUserRequest;
 import jm.gov.jca.transshipment_api.user.dto.RegisterRequesterRequest;
 import jm.gov.jca.transshipment_api.user.dto.UserResponse;
 
@@ -44,16 +50,20 @@ public class AuthController {
 
     private final UserService userService;
 
+    private final UserRepository userRepository;
+
     public AuthController(
         AuthenticationManager authenticationManager,
         SecurityContextRepository securityContextRepository,
         SessionAuthenticationStrategy sessionAuthenticationStrategy,
-        UserService userService
+        UserService userService,
+        UserRepository userRepository
     ) {
         this.authenticationManager = authenticationManager;
         this.securityContextRepository = securityContextRepository;
         this.sessionAuthenticationStrategy = sessionAuthenticationStrategy;
         this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/csrf")
@@ -66,9 +76,8 @@ public class AuthController {
         @Valid
         @RequestBody
         RegisterRequesterRequest request) {
-            return userService
-                .registerRequester(request);
-        }
+        return userService.registerRequester(request);
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
@@ -78,76 +87,89 @@ public class AuthController {
         HttpServletRequest httpRequest,
         HttpServletResponse httpResponse) {
 
-            // temp
-            System.out.println("LOGIN CONTROLLER HIT " + request.email());
+        // temp
+        System.out.println("LOGIN CONTROLLER HIT " + request.email());
 
-            try{
-                Authentication authenticationRequest = 
-                    UsernamePasswordAuthenticationToken.unauthenticated(request.email(), request.password());
-            
-                Authentication authentication =
-                     authenticationManager.authenticate(authenticationRequest);
-                
-                // temp
-                System.out.println("AUTHENTICATION SUCCESS: " + authentication.getName());
-
-                // Protect against session fixation
-                sessionAuthenticationStrategy
-                    .onAuthentication(authentication, httpRequest, httpResponse);
-                
-                System.out.println("SESSION STRATEGY SUCCESS");
-
-                SecurityContext context = SecurityContextHolder.createEmptyContext();
-                    
-                context.setAuthentication(authentication);
-    
-                SecurityContextHolder.setContext(context);
-    
-                securityContextRepository
-                    .saveContext(context, httpRequest, httpResponse);
-                
-                // temp
-                System.out.println("SECURITY CONTEXT SAVED");
-                
-                return ResponseEntity.ok(toAuthResponse(authentication));
-                
-            } catch(InternalAuthenticationServiceException ex){
-
-                // temp
-                System.err.println("INTERNAL AUTHENTICATION ERROR:");
-                System.err.println(ex.getMessage());
-
-                if(ex.getCause() != null){
-                    ex.getCause().printStackTrace();
-                }
-
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(Map.of("error", "Internal authentication error"));
-
-            } catch(AuthenticationException ex){
-                
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Invalid email or password"));
-            }
-        }
+        try{
+            Authentication authenticationRequest = 
+                UsernamePasswordAuthenticationToken.unauthenticated(request.email(), request.password());
         
-        @GetMapping("/me")
-        public AuthResponse me(Authentication authentication) {
-            return toAuthResponse(authentication);
-        }
+            Authentication authentication =
+                    authenticationManager.authenticate(authenticationRequest);
+            
+            // temp
+            System.out.println("AUTHENTICATION SUCCESS: " + authentication.getName());
 
-        private AuthResponse toAuthResponse(Authentication authentication){
-            String role = authentication
-                .getAuthorities()
-                .stream()
-                .map(GrantedAuthority::getAuthority)
-                .filter(authority -> authority.startsWith("ROLE_"))
-                .findFirst()
-                .map(authority -> authority.substring(5))
-                .orElse("UNKOWN");
+            // Protect against session fixation
+            sessionAuthenticationStrategy
+                .onAuthentication(authentication, httpRequest, httpResponse);
+            
+            System.out.println("SESSION STRATEGY SUCCESS");
 
-            return new AuthResponse(authentication.getName(), role);
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+                
+            context.setAuthentication(authentication);
+
+            SecurityContextHolder.setContext(context);
+
+            securityContextRepository
+                .saveContext(context, httpRequest, httpResponse);
+            
+            // temp
+            System.out.println("SECURITY CONTEXT SAVED");
+            
+            return ResponseEntity.ok(toAuthResponse(authentication));
+            
+        } catch(InternalAuthenticationServiceException ex){
+
+            // temp
+            System.err.println("INTERNAL AUTHENTICATION ERROR:");
+            System.err.println(ex.getMessage());
+
+            if(ex.getCause() != null){
+                ex.getCause().printStackTrace();
+            }
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "Internal authentication error"));
+
+        } catch(AuthenticationException ex){
+            
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "Invalid email or password"));
         }
+    }
+        
+    @GetMapping("/me")
+    public CurrentUserResponse me(Authentication authentication) {
+        return toAuthResponse(authentication);
+    }
+
+    @PatchMapping("/{userId}")
+    public UserResponse updateUser(
+        @PathVariable UUID userId,
+        @Valid @RequestBody AdminUpdateUserRequest request
+    ){
+        return userService.updateUser(userId, request);
+    }
+
+    private CurrentUserResponse toAuthResponse(Authentication authentication){
+        UserAccount user = userRepository
+            .findByEmailIgnoreCase(authentication.getName())
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED, "Authenticated user account not found"));
+
+        return new CurrentUserResponse(
+            user.getId(),
+            user.getFullName(),
+            user.getTelephone(),
+            user.getCompanyTrn(),
+            user.getShippingAgentName(),
+            user.getEmail(),
+            user.getRole(),
+            user.getStatus()
+        );
+    }
 
     @PostMapping("/verify-email")
     public ResponseEntity<Void> verifyEmail(
