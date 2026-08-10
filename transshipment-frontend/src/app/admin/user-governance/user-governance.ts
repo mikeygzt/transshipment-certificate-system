@@ -30,7 +30,10 @@ export class UserGovernance {
   readonly selectedUser = signal<UserResponse | null>(null);
 
   readonly isEditingFullName = signal(false);
+  readonly isEditingEmail = signal(false);
   readonly isEditingTelephone = signal(false);
+  readonly isEditingCompanyTRN = signal(false);
+  readonly isEditingShippingAgentName = signal(false);
 
   readonly isSaving = signal(false);
   readonly saveErrorMessage = signal("");
@@ -89,11 +92,23 @@ export class UserGovernance {
     this.fullNameControl.setValue(user.fullName);
     this.fullNameControl.markAsPristine();
 
+    this.emailControl.setValue(user.email);
+    this.emailControl.markAsPristine();
+
     this.telephoneControl.setValue(user.telephone);
     this.telephoneControl.markAsPristine();
 
+    this.companyTRNControl.setValue(user.companyTRN);
+    this.companyTRNControl.markAsPristine();
+
+    this.shippingAgentNameControl.setValue(user.shippingAgentName);
+    this.shippingAgentNameControl.markAsPristine();
+
     this.isEditingFullName.set(false);
+    this.isEditingEmail.set(false);
     this.isEditingTelephone.set(false);
+    this.isEditingCompanyTRN.set(false);
+    this.isEditingShippingAgentName.set(false);
   }
 
   closeUserDetails(): void {
@@ -110,6 +125,14 @@ export class UserGovernance {
     ]
   });
 
+  readonly emailControl = new FormControl("", {
+    nonNullable: true,
+    validators: [
+      Validators.required,
+      Validators.email
+    ]
+  })
+  
   readonly telephoneControl = new FormControl("", {
     nonNullable: true,
     validators: [
@@ -118,13 +141,44 @@ export class UserGovernance {
     ]
   })
 
+  readonly companyTRNControl = new FormControl("", {
+    nonNullable: true,
+    validators: [
+      Validators.required,
+      Validators.pattern(/^\d{13}$/)
+    ]
+  })
+
+  readonly shippingAgentNameControl = new FormControl("", {
+    nonNullable: true,
+    validators: [
+      Validators.required
+    ]
+  })
+
+
   editFullName(): void {
     this.isEditingFullName.set(true);
     this.saveErrorMessage.set("");
   }
 
+  editEmail(): void {
+    this.isEditingEmail.set(true);
+    this.saveErrorMessage.set("");
+  }
+
   editTelephone(): void {
-    this.isEditingTelephone.set(true)
+    this.isEditingTelephone.set(true);
+    this.saveErrorMessage.set("");
+  }
+
+  editCompanyTRN(): void {
+    this.isEditingCompanyTRN.set(true);
+    this.saveErrorMessage.set("");
+  }
+
+  editShippingAgentName(): void {
+    this.isEditingShippingAgentName.set(true);
     this.saveErrorMessage.set("");
   }
 
@@ -139,9 +193,21 @@ export class UserGovernance {
     this.fullNameControl.markAsPristine();
     this.isEditingFullName.set(false);
 
+    this.emailControl.setValue(user.email);
+    this.emailControl.markAsPristine();
+    this.isEditingEmail.set(false);
+
     this.telephoneControl.setValue(user.telephone);
     this.telephoneControl.markAsPristine();
     this.isEditingTelephone.set(false);
+
+    this.companyTRNControl.setValue(user.companyTRN);
+    this.companyTRNControl.markAsPristine();
+    this.isEditingCompanyTRN.set(false);
+    
+    this.shippingAgentNameControl.setValue(user.shippingAgentName);
+    this.shippingAgentNameControl.markAsPristine();
+    this.isEditingShippingAgentName.set(false);
 
     this.saveErrorMessage.set("");
   }
@@ -154,16 +220,26 @@ export class UserGovernance {
     }
 
     return (
-      this.fullNameControl.value.trim() !== user.fullName
-      ||
-      this.telephoneControl.value.trim() !== (user.telephone ?? "")
+      this.fullNameControl.value.trim() !== user.fullName ||
+      this.emailControl.value.trim() !== user.email ||
+      this.telephoneControl.value.trim() !== user.telephone ||
+      this.companyTRNControl.value.trim() !== user.companyTRN ||
+      this.shippingAgentNameControl.value.trim() !== user.shippingAgentName
     );
   }
 
   saveChanges(): void {
     const user = this.selectedUser();
 
-    if(!user || this.fullNameControl.invalid || !this.hasChanges()) {
+    if(
+      !user || 
+      this.fullNameControl.invalid || 
+      this.emailControl.invalid ||
+      this.telephoneControl.invalid ||
+      this.companyTRNControl.invalid || 
+      this.shippingAgentNameControl.invalid ||
+      !this.hasChanges()
+    ) {
       return;
     }
 
@@ -171,7 +247,14 @@ export class UserGovernance {
     this.saveErrorMessage.set("");
 
     this.userGovernanceService
-      .updateUser(user.id, this.fullNameControl.value.trim())
+      .updateUser(
+        user.id, 
+        this.fullNameControl.value.trim(),
+        this.emailControl.value.trim(),
+        this.telephoneControl.value.trim(),
+        this.companyTRNControl.value.trim(),
+        this.shippingAgentNameControl.value.trim()
+      )
       .pipe(
         finalize(() => {
           this.isSaving.set(false)
@@ -190,6 +273,22 @@ export class UserGovernance {
           this.fullNameControl.setValue(updatedUser.fullName);
           this.fullNameControl.markAsPristine();
           this.isEditingFullName.set(false);
+
+          this.emailControl.setValue(updatedUser.email);
+          this.emailControl.markAsPristine();
+          this.isEditingEmail.set(false);
+
+          this.telephoneControl.setValue(updatedUser.telephone);
+          this.telephoneControl.markAsPristine();
+          this.isEditingTelephone.set(false);
+
+          this.companyTRNControl.setValue(updatedUser.companyTRN);
+          this.companyTRNControl.markAsPristine();
+          this.isEditingCompanyTRN.set(false);
+
+          this.shippingAgentNameControl.setValue(updatedUser.shippingAgentName);
+          this.shippingAgentNameControl.markAsPristine();
+          this.isEditingShippingAgentName.set(false);
         },
 
         error: () => {

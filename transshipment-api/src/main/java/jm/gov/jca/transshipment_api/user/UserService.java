@@ -107,8 +107,30 @@ public class UserService {
 
         user.setFullName(request.fullName());
 
+        if (request.fullName() != null) {
+            String fullName = request.fullName().trim();
+
+            if(fullName.isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Full name cannot be blank");
+            }
+
+            user.setFullName(fullName);
+        }
+
+        if (request.email() != null) {
+            user.setEmail(request.email().trim());
+        }
+
         if (request.telephone() != null) {
             user.setTelephone(request.telephone().trim());
+        }
+
+        if (request.companyTRN() != null) {
+            user.setCompanyTrn(request.companyTRN().trim());
+        }
+
+        if (request.shippingAgentName() != null) {
+            user.setShippingAgentName(request.shippingAgentName().trim());
         }
 
         UserAccount updatedUser = userRepository.save(user);

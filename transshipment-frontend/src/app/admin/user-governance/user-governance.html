@@ -191,24 +191,148 @@
                                 </dd>
                             </div>
 
-                            <div class="detail-item">
-                                <dt>Email address</dt>
-                                <dd>{{ user.email }}</dd>
+                            <div class="detail-item editable-detail">
+                                <dt>Email</dt>
+                                <dd>
+                                    @if (isEditingEmail()) {
+                                        <div class="edit-field">
+                                            <input 
+                                                type="text"
+                                                [formControl]="emailControl"
+                                                aria-label="Email"
+                                            />
+
+                                            @if (emailControl.touched && emailControl.invalid) {
+                                                <small class="field-error">
+                                                    Please enter a valid email address.
+                                                </small>
+                                            }
+                                        </div>
+                                    } @else {
+                                        <span>{{ user.email }}</span>
+                                    }
+
+                                    <button
+                                        type="button"
+                                        class="edit-button"
+                                        aria-label="Edit email"
+                                        (click)="editEmail()"
+                                    >
+                                        <svg
+                                            lucideSquarePen
+                                            aria-hidden="true"
+                                        ></svg>
+
+                                    </button>
+                                </dd>
                             </div>
 
-                            <div class="detail-item">
+                            <div class="detail-item editable-detail">
                                 <dt>Telephone</dt>
-                                <dd>{{ user.telephone || "Not provided" }}</dd>
+                                <dd>
+                                    @if (isEditingTelephone()) {
+                                        <div class="edit-field">
+                                            <input 
+                                                type="text"
+                                                [formControl]="telephoneControl"
+                                                aria-label="Telephone"
+                                            />
+
+                                            @if (telephoneControl.touched && telephoneControl.invalid) {
+                                                <small class="field-error">
+                                                    Please enter a valid 10-digit telephone number.
+                                                </small>
+                                            }
+                                        </div>
+                                    } @else {
+                                        <span>{{ user.telephone }}</span>
+                                    }
+
+                                    <button
+                                        type="button"
+                                        class="edit-button"
+                                        aria-label="Edit telephone"
+                                        (click)="editTelephone()"
+                                    >
+                                        <svg
+                                            lucideSquarePen
+                                            aria-hidden="true"
+                                        ></svg>
+
+                                    </button>
+                                </dd>
                             </div>
 
-                            <div class="detail-item">
+                            <div class="detail-item editable-detail">
                                 <dt>Company TRN</dt>
-                                <dd>{{ user.companyTRN || "Not provided" }}</dd>
+                                <dd>
+                                    @if (isEditingCompanyTRN()) {
+                                        <div class="edit-field">
+                                            <input 
+                                                type="text"
+                                                [formControl]="companyTRNControl"
+                                                aria-label="Company TRN"
+                                            />
+
+                                            @if (companyTRNControl.touched && companyTRNControl.invalid) {
+                                                <small class="field-error">
+                                                    This field must contain exactly 13 digits.
+                                                </small>
+                                            }
+                                        </div>
+                                    } @else {
+                                        <span>{{ user.companyTRN }}</span>
+                                    }
+
+                                    <button
+                                        type="button"
+                                        class="edit-button"
+                                        aria-label="Edit company TRN"
+                                        (click)="editCompanyTRN()"
+                                    >
+                                        <svg
+                                            lucideSquarePen
+                                            aria-hidden="true"
+                                        ></svg>
+
+                                    </button>
+                                </dd>
                             </div>
 
-                            <div class="detail-item">
-                                <dt>Shipping Agent</dt>
-                                <dd>{{ user.shippingAgentName || "Not provided" }}</dd>
+                            <div class="detail-item editable-detail">
+                                <dt>Shipping Agent Name</dt>
+                                <dd>
+                                    @if (isEditingShippingAgentName()) {
+                                        <div class="edit-field">
+                                            <input 
+                                                type="text"
+                                                [formControl]="shippingAgentNameControl"
+                                                aria-label="Shipping Agent Name"
+                                            />
+
+                                            @if (shippingAgentNameControl.touched && shippingAgentNameControl.invalid) {
+                                                <small class="field-error">
+                                                    Please enter a valid Shipping Agent name.
+                                                </small>
+                                            }
+                                        </div>
+                                    } @else {
+                                        <span>{{ user.shippingAgentName }}</span>
+                                    }
+
+                                    <button
+                                        type="button"
+                                        class="edit-button"
+                                        aria-label="Edit shipping agent name"
+                                        (click)="editShippingAgentName()"
+                                    >
+                                        <svg
+                                            lucideSquarePen
+                                            aria-hidden="true"
+                                        ></svg>
+
+                                    </button>
+                                </dd>
                             </div>
                         </dl>
                     </section>
@@ -265,7 +389,12 @@
                             <button
                                 type="button"
                                 class="save-button"
-                                [disabled]="fullNameControl.invalid"
+                                [disabled]="
+                                fullNameControl.invalid || 
+                                telephoneControl.invalid ||
+                                companyTRNControl.invalid ||
+                                shippingAgentNameControl.invalid ||
+                                isSaving()"
                                 (click)="saveChanges()"
                             >
                                 {{ isSaving() ? "Saving..." : "Save changes" }}
