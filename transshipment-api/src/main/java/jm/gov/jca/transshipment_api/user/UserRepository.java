@@ -1,5 +1,6 @@
 package jm.gov.jca.transshipment_api.user;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,4 +15,6 @@ public interface UserRepository extends JpaRepository<UserAccount, UUID> {
     boolean existsByRole(Role role);
 
     long countByRole(Role role);
+
+    List<UserAccount> findAllByOrderByCreatedAtDesc();
 }

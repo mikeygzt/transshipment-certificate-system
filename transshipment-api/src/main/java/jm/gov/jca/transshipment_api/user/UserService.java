@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jm.gov.jca.transshipment_api.auth.verification.EmailVerificationService;
 import jm.gov.jca.transshipment_api.user.dto.AdminCreateUserRequest;
+import jm.gov.jca.transshipment_api.user.dto.AdminUpdateUserRequest;
 import jm.gov.jca.transshipment_api.user.dto.RegisterRequesterRequest;
 import jm.gov.jca.transshipment_api.user.dto.UserResponse;
 
@@ -67,7 +68,8 @@ public class UserService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getAllUsers(){
-        return userRepository.findAll()
+        return userRepository
+            .findAllByOrderByCreatedAtDesc()
             .stream()
             .map(this::toResponse)
             .toList();
@@ -92,6 +94,28 @@ public class UserService {
 
         userRepository.delete(user);
     }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse updateUser(UUID userId, AdminUpdateUserRequest request) {
+        UserAccount user = userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "User account not found"
+            ));
+
+        user.setFullName(request.fullName());
+
+        if (request.telephone() != null) {
+            user.setTelephone(request.telephone().trim());
+        }
+
+        UserAccount updatedUser = userRepository.save(user);
+
+        return toResponse(updatedUser);
+    }
+
 
     private UserResponse createUser(
         String fullName,
