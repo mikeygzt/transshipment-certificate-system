@@ -30,6 +30,7 @@ export class UserGovernance {
   readonly selectedUser = signal<UserResponse | null>(null);
 
   readonly isEditingFullName = signal(false);
+  readonly isEditingTelephone = signal(false);
 
   readonly isSaving = signal(false);
   readonly saveErrorMessage = signal("");
@@ -87,7 +88,12 @@ export class UserGovernance {
 
     this.fullNameControl.setValue(user.fullName);
     this.fullNameControl.markAsPristine();
+
+    this.telephoneControl.setValue(user.telephone);
+    this.telephoneControl.markAsPristine();
+
     this.isEditingFullName.set(false);
+    this.isEditingTelephone.set(false);
   }
 
   closeUserDetails(): void {
@@ -104,8 +110,21 @@ export class UserGovernance {
     ]
   });
 
+  readonly telephoneControl = new FormControl("", {
+    nonNullable: true,
+    validators: [
+      Validators.required,
+      Validators.pattern(/^(\d{10}|\d{3}-\d{3}-\d{4})$/)
+    ]
+  })
+
   editFullName(): void {
     this.isEditingFullName.set(true);
+    this.saveErrorMessage.set("");
+  }
+
+  editTelephone(): void {
+    this.isEditingTelephone.set(true)
     this.saveErrorMessage.set("");
   }
 
@@ -119,22 +138,32 @@ export class UserGovernance {
     this.fullNameControl.setValue(user.fullName);
     this.fullNameControl.markAsPristine();
     this.isEditingFullName.set(false);
+
+    this.telephoneControl.setValue(user.telephone);
+    this.telephoneControl.markAsPristine();
+    this.isEditingTelephone.set(false);
+
+    this.saveErrorMessage.set("");
   }
 
-  hasFullNameChanges(): boolean {
+  hasChanges(): boolean {
     const user = this.selectedUser();
 
     if (!user) {
       return false;
     }
 
-    return this.fullNameControl.value.trim() !== user.fullName;
+    return (
+      this.fullNameControl.value.trim() !== user.fullName
+      ||
+      this.telephoneControl.value.trim() !== (user.telephone ?? "")
+    );
   }
 
   saveChanges(): void {
     const user = this.selectedUser();
 
-    if(!user || this.fullNameControl.invalid || !this.hasFullNameChanges()) {
+    if(!user || this.fullNameControl.invalid || !this.hasChanges()) {
       return;
     }
 

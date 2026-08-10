@@ -10,7 +10,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
@@ -23,14 +22,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jm.gov.jca.transshipment_api.auth.dto.AuthResponse;
+import jm.gov.jca.transshipment_api.auth.dto.CurrentUserResponse;
 import jm.gov.jca.transshipment_api.auth.dto.LoginRequest;
 import jm.gov.jca.transshipment_api.auth.dto.ResendVerificationRequest;
 import jm.gov.jca.transshipment_api.auth.dto.VerifyEmailRequest;
+import jm.gov.jca.transshipment_api.user.UserAccount;
+import jm.gov.jca.transshipment_api.user.UserRepository;
 import jm.gov.jca.transshipment_api.user.UserService;
 import jm.gov.jca.transshipment_api.user.dto.AdminUpdateUserRequest;
 import jm.gov.jca.transshipment_api.user.dto.RegisterRequesterRequest;
@@ -48,16 +50,20 @@ public class AuthController {
 
     private final UserService userService;
 
+    private final UserRepository userRepository;
+
     public AuthController(
         AuthenticationManager authenticationManager,
         SecurityContextRepository securityContextRepository,
         SessionAuthenticationStrategy sessionAuthenticationStrategy,
-        UserService userService
+        UserService userService,
+        UserRepository userRepository
     ) {
         this.authenticationManager = authenticationManager;
         this.securityContextRepository = securityContextRepository;
         this.sessionAuthenticationStrategy = sessionAuthenticationStrategy;
         this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/csrf")
@@ -135,7 +141,7 @@ public class AuthController {
     }
         
     @GetMapping("/me")
-    public AuthResponse me(Authentication authentication) {
+    public CurrentUserResponse me(Authentication authentication) {
         return toAuthResponse(authentication);
     }
 
@@ -147,17 +153,22 @@ public class AuthController {
         return userService.updateUser(userId, request);
     }
 
-    private AuthResponse toAuthResponse(Authentication authentication){
-        String role = authentication
-            .getAuthorities()
-            .stream()
-            .map(GrantedAuthority::getAuthority)
-            .filter(authority -> authority.startsWith("ROLE_"))
-            .findFirst()
-            .map(authority -> authority.substring(5))
-            .orElse("UNKOWN");
+    private CurrentUserResponse toAuthResponse(Authentication authentication){
+        UserAccount user = userRepository
+            .findByEmailIgnoreCase(authentication.getName())
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED, "Authenticated user account not found"));
 
-        return new AuthResponse(authentication.getName(), role);
+        return new CurrentUserResponse(
+            user.getId(),
+            user.getFullName(),
+            user.getTelephone(),
+            user.getCompanyTrn(),
+            user.getShippingAgentName(),
+            user.getEmail(),
+            user.getRole(),
+            user.getStatus()
+        );
     }
 
     @PostMapping("/verify-email")
