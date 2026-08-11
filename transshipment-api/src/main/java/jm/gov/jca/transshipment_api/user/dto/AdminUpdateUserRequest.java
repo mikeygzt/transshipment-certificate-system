@@ -2,6 +2,7 @@ package jm.gov.jca.transshipment_api.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
+import jm.gov.jca.transshipment_api.user.Role;
 
 public record AdminUpdateUserRequest(
 
@@ -15,6 +16,8 @@ public record AdminUpdateUserRequest(
 
     String companyTRN,
 
-    String shippingAgentName
+    String shippingAgentName,
+
+    Role role
 ) {
 }

@@ -1,9 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DashboardLayout } from '../../shared/dashboard-layout/dashboard-layout';
 import { UserGovernanceService } from './user-governance.service';
-import { UserResponse } from '../../auth.models';
+import { UserResponse, UserRole } from '../../auth.models';
 import { finalize } from 'rxjs';
-import { LucideListFilter, LucideSearch, LucideSquarePen, LucideX } from '@lucide/angular';
+import { LucideListFilter, LucideSearch, LucideSquarePen, LucideTriangleAlert, LucideX } from '@lucide/angular';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
@@ -14,7 +14,8 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
     LucideSearch, 
     LucideListFilter,
     LucideX,
-    LucideSquarePen
+    LucideSquarePen,
+    LucideTriangleAlert
   ],
   templateUrl: './user-governance.html',
   styleUrl: './user-governance.css',
@@ -34,9 +35,19 @@ export class UserGovernance {
   readonly isEditingTelephone = signal(false);
   readonly isEditingCompanyTRN = signal(false);
   readonly isEditingShippingAgentName = signal(false);
+  readonly isEditingRole = signal(false);
 
   readonly isSaving = signal(false);
   readonly saveErrorMessage = signal("");
+
+  readonly showDeactivateConfirmation = signal(false);
+  readonly showDeleteConfirmation = signal(false);
+
+  readonly isDeactivating = signal(false)
+  readonly deactivateErrorMessage = signal("");
+
+  readonly isDeleting = signal(false);
+  readonly deleteErrorMessage = signal("");
 
   constructor() {
     this.loadUsers();
@@ -104,15 +115,25 @@ export class UserGovernance {
     this.shippingAgentNameControl.setValue(user.shippingAgentName);
     this.shippingAgentNameControl.markAsPristine();
 
+    this.roleControl.setValue(user.role);
+    this.roleControl.markAsPristine();
+
     this.isEditingFullName.set(false);
     this.isEditingEmail.set(false);
     this.isEditingTelephone.set(false);
     this.isEditingCompanyTRN.set(false);
     this.isEditingShippingAgentName.set(false);
+    this.isEditingRole.set(false);
+    
+    this.showDeactivateConfirmation.set(false);
+    this.showDeleteConfirmation.set(false);
   }
 
   closeUserDetails(): void {
     this.selectedUser.set(null);
+    this.showDeactivateConfirmation.set(false);
+    this.showDeleteConfirmation.set(false);
+    this.deactivateErrorMessage.set("");
   }
 
   readonly fullNameControl = new FormControl("", {
@@ -131,7 +152,7 @@ export class UserGovernance {
       Validators.required,
       Validators.email
     ]
-  })
+  });
   
   readonly telephoneControl = new FormControl("", {
     nonNullable: true,
@@ -139,7 +160,7 @@ export class UserGovernance {
       Validators.required,
       Validators.pattern(/^(\d{10}|\d{3}-\d{3}-\d{4})$/)
     ]
-  })
+  });
 
   readonly companyTRNControl = new FormControl("", {
     nonNullable: true,
@@ -147,14 +168,18 @@ export class UserGovernance {
       Validators.required,
       Validators.pattern(/^\d{13}$/)
     ]
-  })
+  });
 
   readonly shippingAgentNameControl = new FormControl("", {
     nonNullable: true,
     validators: [
       Validators.required
     ]
-  })
+  });
+
+  readonly roleControl = new FormControl<UserRole>("REQUESTER", {
+    nonNullable: true
+  });
 
 
   editFullName(): void {
@@ -180,6 +205,28 @@ export class UserGovernance {
   editShippingAgentName(): void {
     this.isEditingShippingAgentName.set(true);
     this.saveErrorMessage.set("");
+  }
+
+  editRole(): void {
+    this.isEditingRole.set(true);
+    this.saveErrorMessage.set("");
+  }
+
+  openDeactivateConfirmation(): void {
+    this.showDeactivateConfirmation.set(true);
+  }
+
+  cancelDeactivate(): void {
+    this.showDeactivateConfirmation.set(false);
+    this.deactivateErrorMessage.set("");
+  }
+
+  openDeleteConfirmation(): void {
+    this.showDeleteConfirmation.set(true);
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirmation.set(false);
   }
 
   cancelChanges(): void {
@@ -209,6 +256,10 @@ export class UserGovernance {
     this.shippingAgentNameControl.markAsPristine();
     this.isEditingShippingAgentName.set(false);
 
+    this.roleControl.setValue(user.role);
+    this.roleControl.markAsPristine();
+    this.isEditingRole.set(false);
+
     this.saveErrorMessage.set("");
   }
 
@@ -224,7 +275,8 @@ export class UserGovernance {
       this.emailControl.value.trim() !== user.email ||
       this.telephoneControl.value.trim() !== user.telephone ||
       this.companyTRNControl.value.trim() !== user.companyTRN ||
-      this.shippingAgentNameControl.value.trim() !== user.shippingAgentName
+      this.shippingAgentNameControl.value.trim() !== user.shippingAgentName ||
+      this.roleControl.value !== user.role
     );
   }
 
@@ -238,6 +290,7 @@ export class UserGovernance {
       this.telephoneControl.invalid ||
       this.companyTRNControl.invalid || 
       this.shippingAgentNameControl.invalid ||
+      this.roleControl.invalid  ||
       !this.hasChanges()
     ) {
       return;
@@ -253,7 +306,8 @@ export class UserGovernance {
         this.emailControl.value.trim(),
         this.telephoneControl.value.trim(),
         this.companyTRNControl.value.trim(),
-        this.shippingAgentNameControl.value.trim()
+        this.shippingAgentNameControl.value.trim(),
+        this.roleControl.value,
       )
       .pipe(
         finalize(() => {
@@ -289,12 +343,55 @@ export class UserGovernance {
           this.shippingAgentNameControl.setValue(updatedUser.shippingAgentName);
           this.shippingAgentNameControl.markAsPristine();
           this.isEditingShippingAgentName.set(false);
+
+          this.roleControl.setValue(updatedUser.role);
+          this.roleControl.markAsPristine();
+          this.isEditingRole.set(false);
         },
 
         error: () => {
           this.saveErrorMessage.set("We could not save your changes. Please try again.");
         }
       })
+  }
+
+  deactivateSelectedUser(): void {
+    const user = this.selectedUser();
+
+    if(!user || this.isDeactivating()) {
+      return;
+    }
+
+    this.isDeactivating.set(true);
+    this.deactivateErrorMessage.set("");
+
+    this.userGovernanceService
+      .deactivateUser(user.id)
+      .pipe(
+        finalize(() => {
+          this.isDeactivating.set(false);
+        })
+      )
+      .subscribe({
+        next: updatedUser => {
+          this.selectedUser.set(updatedUser);
+
+          this.users.update(users => 
+            users.map(existingUser => 
+              existingUser.id === updatedUser.id
+              ? updatedUser
+              : existingUser
+            )
+          );
+
+          this.showDeactivateConfirmation.set(false);
+          this.cancelChanges();
+        },
+
+        error: () => {
+          this.deactivateErrorMessage.set("We could not deactivate this account. Please try again.");
+        }
+      });
   }
 
 }

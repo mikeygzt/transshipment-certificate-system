@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { Observable, switchMap } from "rxjs";
-import { UserResponse } from "../../auth.models";
+import { UserResponse, UserRole, UserStatus } from "../../auth.models";
 import { AuthService } from "../../auth/auth.service";
 
 @Injectable({
@@ -21,7 +21,8 @@ export class UserGovernanceService {
         email: string,
         telephone: string,
         companyTRN: string,
-        shippingAgentName: string
+        shippingAgentName: string,
+        role: UserRole
     ): Observable<UserResponse> {
         return this.authService.getCsrfToken().pipe(
             switchMap(() => 
@@ -32,10 +33,21 @@ export class UserGovernanceService {
                         email,
                         telephone,
                         companyTRN,
-                        shippingAgentName
+                        shippingAgentName,
+                        role
                     }
                 )
             )
+        )
+    }
+
+    deactivateUser(userId: string): Observable<UserResponse> {
+        return this.authService.getCsrfToken().pipe(
+            switchMap(() => 
+                this.http.patch<UserResponse>(
+                    `/api/admin/users/${userId}/deactivate`, {}
+                )
+        )
         )
     }
 }

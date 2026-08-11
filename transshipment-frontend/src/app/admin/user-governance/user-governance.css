@@ -442,6 +442,26 @@
     outline: none;
 }
 
+.edit-field select {
+    width: 100%;
+    min-height: 38px;
+    padding: 0 10px;
+    border: 1px solid #d0d5dd;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #101828;
+    font: inherit;
+    font-size: 0.85rem;
+    outline: none;
+    cursor: pointer;
+
+}
+
+.edit-field select:focus {
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgb(25 118 210 / 12%);
+}
+
 .edit-field input:focus {
     border-color: #1976d2;
     box-shadow: 0 0 0 3px rgb(25 118 210 / 12%);
@@ -531,6 +551,132 @@
     color: #b42318;
     font-size: 0.78rem;
     padding: 10px;
+}
+
+.danger-section {
+    display: flex;
+    flex-direction: column;
+    margin-top: 30px;
+    padding: 18px;
+    border: 1px solid #fecdca;
+    border-radius: 10px;
+    background: #fffafa;
+}
+
+.danger-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.danger-heading > svg {
+    width: 20px;
+    height: 20px;
+    color: #B42318;
+}
+
+.danger-heading h3 {
+    margin: 0;
+    color: #b42318;
+    font-size: 0.9rem;
+    font-weight: 650;
+}
+
+.danger-heading p {
+    margin: 6px 0 0;
+    color: #667085;
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.deactivate-button, .delete-button {
+    min-height: 38px;
+    margin-top: 16px;
+    padding: 0 14px;
+    border-radius: 7px;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.deactivate-button {
+    border: 1px solid #d92d20;
+    background: #ffffff;
+    color: #b42318;
+}
+
+
+.deactivate-button:hover {
+    background: #fff1f0;
+}
+
+.delete-button {
+    border: 1px solid #d92d20;
+    background: #d92d20;
+    color: #ffffff;
+}
+
+.delete-button:hover {
+    background: #b42318;
+}
+
+.deactivate-confirmation {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px 18px;
+    border-top: 1px solid #fecdca;
+    background: #fff7f6;
+    box-shadow: 0 -6px 18px rgb(15 23 42 / 7%);
+}
+
+.deactivate-confirmation strong {
+    color: #b42318;
+    font-size: 0.85rem;
+}
+
+.deactivate-confirmation p {
+    margin: 4px 0 0;
+    color: #667085;
+    font-size: 0.76rem;
+}
+
+.confirmation-actions {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.confirm-deactivate-button {
+    min-height: 36px;
+    padding: 0 36px;
+    border: 1px solid #d92d20;
+    border-radius: 7px;
+    background: #d92d20;
+    color: #ffffff;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.confirm-deactivate-button:hover {
+    background: #b42318;
+}
+
+.deactivate-error {
+    color: #b42318;
+    font-size: 0.78rem;
+    margin: 0 10px;
+    padding: 10px;
+}
+
+.confirm-deactivate-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 @keyframes drawer-enter {

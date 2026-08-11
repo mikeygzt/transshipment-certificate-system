@@ -6,6 +6,10 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,15 +27,18 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
+    private final SessionRegistry sessionRegistry;
 
     public UserService(
         UserRepository userRepository, 
         PasswordEncoder passwordEncoder,
-        EmailVerificationService emailVerificationService   
+        EmailVerificationService emailVerificationService,
+        SessionRegistry sessionRegistry
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailVerificationService = emailVerificationService;
+        this.sessionRegistry = sessionRegistry;
     }
 
     @Transactional
@@ -77,7 +84,35 @@ public class UserService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteUser(UUID userId){
+    public UserResponse deactivateUser(UUID userId, Authentication authentication) {
+        UserAccount user = userRepository
+            .findById(userId)
+            .orElseThrow(() -> 
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+            );
+
+        if (user.getEmail().equalsIgnoreCase(authentication.getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "You cannot deactivate your own account.");
+        }
+        
+        if (user.getStatus() == Status.DEACTIVATED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "This account has already been deactivated");
+        }
+
+        user.setStatus(Status.DEACTIVATED);
+
+        UserAccount updatedUser = userRepository.save(user);
+
+        expireUserSession(updatedUser.getEmail());
+        
+        return toResponse(updatedUser);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteUser(UUID userId, Authentication authentication){
         UserAccount user = userRepository
         .findById(userId)
         .orElseThrow(() -> 
@@ -90,6 +125,11 @@ public class UserService {
         ){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
                 "The final administrator cannot be deleted");
+        }
+
+        if (user.getEmail().equalsIgnoreCase(authentication.getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "You cannot delete your own account.");
         }
 
         userRepository.delete(user);
@@ -131,6 +171,10 @@ public class UserService {
 
         if (request.shippingAgentName() != null) {
             user.setShippingAgentName(request.shippingAgentName().trim());
+        }
+
+        if (request.role() != null) {
+            user.setRole(request.role());
         }
 
         UserAccount updatedUser = userRepository.save(user);
@@ -216,6 +260,24 @@ public class UserService {
             userRepository.findByEmailIgnoreCase(email)
                 .filter(user -> user.getStatus() == Status.PENDING_CONFIRMATION)
                 .ifPresent(emailVerificationService::createVerificationCode);
+    }
+
+    private void expireUserSession(String email){ 
+        for (Object principal : sessionRegistry.getAllPrincipals()) {
+            String username = null;
+
+            if (principal instanceof UserDetails userDetails) {
+                username = userDetails.getUsername();
+            } else if (principal instanceof String value) {
+                username = value;
+            }
+
+            if (username != null && username.equalsIgnoreCase(email)) {
+                for (SessionInformation session : sessionRegistry.getAllSessions(principal, false)) {
+                    session.expireNow();
+                }
+            }
+        }
     }
 
 }

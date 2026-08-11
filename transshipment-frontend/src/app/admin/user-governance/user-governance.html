@@ -40,7 +40,7 @@
                 <p>Laoding user accounts...</p>
             </div>
         } @else if (errorMessage()) {
-            <div class="page-state error-stte">
+            <div class="page-state error-state">
                 <p>{{ errorMessage() }}</p>
             </div>
         } @else {
@@ -341,23 +341,52 @@
                         <h3>Account information</h3>
 
                         <dl class="details-list">
-                            <div class="detail-item">
+                            <div class="detail-item editable-detail">
                                 <dt>Role</dt>
-                                <dd>{{ user.role }}</dd>
+
+                                <dd>
+                                    @if (isEditingRole()) {
+                                        <div class="edit-field">
+                                            <select [formControl]="roleControl" aria-label="User role">
+                                                <option value="REQUESTER">Requester</option>
+                                                <option value="REVIEWER">Reviewer</option>
+                                                <option value="ADMIN">Admin</option>
+                                            </select>
+                                        </div>
+                                    } @else {
+                                        <span>
+                                            {{
+                                                user.role === "REQUESTER" ?
+                                                "Requester" : 
+                                                user.role === "REVIEWER" ?
+                                                "Reviewer" : "Admin"
+                                            }}
+                                        </span>
+                                    }
+
+                                    <button 
+                                        type="button" 
+                                        class="edit-button"
+                                        aria-label="Edit user role"
+                                        (click)="editRole()"
+                                    >
+                                        <svg
+                                            lucideSquarePen
+                                            aria-hidden="true"
+                                        ></svg>
+                                    </button>
+                                </dd>
                             </div>
 
                             <div class="detail-item">
                                 <dt>Status</dt>
-                                <dd>
-                                    <span
-                                        class="status-badge"
-                                        [class.active-status]="user.status === 'ACTIVE'"
-                                        [class.pending-status]="user.status === 'PENDING_CONFIRMATION'"
-                                        [class.deactivated-status]="user.status === 'DEACTIVATED'"
-                                    >
-                                        {{ user.status === "PENDING_CONFIRMATION" ? "Pending" : user.status }}
-                                    </span>
-                                </dd>
+                                <dd>{{
+                                        user.status === "ACTIVE" ?
+                                        "Active" : 
+                                        user.status === "PENDING_CONFIRMATION" ?
+                                        "Pending Confirmation" :
+                                        "Deactivated"
+                                    }}</dd>
                             </div>
 
                             <div class="detail-item">
@@ -367,6 +396,33 @@
 
                         </dl>
                     </section>
+
+                    @if (user.status !== "DEACTIVATED") {
+                        <section class="danger-section">
+                            <div class="danger-heading">
+                                <svg
+                                    lucideTriangleAlert
+                                    aria-hidden="true"
+                                ></svg>
+            
+                                <h3>Danger zone</h3>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="deactivate-button"
+                                (click)="openDeactivateConfirmation()">
+                                Deactivate account
+                            </button>
+
+                            <button
+                                type="button"
+                                class="delete-button"
+                                (click)="openDeleteConfirmation()">
+                                Delete account
+                            </button>
+                        </section>
+                    }
                 </div>
 
                 @if (saveErrorMessage() && isEditingFullName()) {
@@ -394,10 +450,69 @@
                                 telephoneControl.invalid ||
                                 companyTRNControl.invalid ||
                                 shippingAgentNameControl.invalid ||
+                                roleControl.invalid ||
                                 isSaving()"
                                 (click)="saveChanges()"
                             >
                                 {{ isSaving() ? "Saving..." : "Save changes" }}
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                @if (deactivateErrorMessage()) {
+                    <p class="deactivate-error">
+                        {{ deactivateErrorMessage() }}
+                    </p>
+                }
+
+                @if (showDeactivateConfirmation()) {
+                    <div class="deactivate-confirmation">
+                        <div>
+                            <strong>Deactivate this account</strong>
+
+                            <p>{{ user.fullName }} will no longer be able to sign in.</p>
+                        </div>
+
+                        <div class="confirmation-actions">
+                            <button
+                                type="button"
+                                class="cancel-button"
+                                (click)="cancelDeactivate()">
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                class="confirm-deactivate-button"
+                                [disabled]="isDeactivating()"
+                                (click)="deactivateSelectedUser()">
+                                {{ isDeactivating() ? "Deactivating..." : "Deactivate" }}
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                @if (showDeleteConfirmation()) {
+                      <div class="deactivate-confirmation">
+                        <div>
+                            <strong>Delete this account</strong>
+
+                            <p>{{ user.fullName }}'s account will be permanently deleted.</p>
+                        </div>
+
+                        <div class="confirmation-actions">
+                            <button
+                                type="button"
+                                class="cancel-button"
+                                (click)="cancelDelete()">
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                class="confirm-deactivate-button">
+                                Delete
                             </button>
                         </div>
                     </div>
