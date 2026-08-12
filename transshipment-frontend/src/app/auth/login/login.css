@@ -1,0 +1,11 @@
+.message-link {
+    margin-left: 4px;
+    color: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.message-link:hover {
+    text-decoration-thickness: 2px;
+}

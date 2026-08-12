@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -82,6 +83,14 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                     .maximumSessions(-1) // -1 means unlimited concurrent sessions so it doesnt restrict users to one device
                     .sessionRegistry(sessionRegistry)
+                    .expiredSessionStrategy(event -> {
+                        HttpServletResponse response = event.getResponse();
+
+                        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                        response.setContentType("application/json");
+
+                        response.getWriter().write("{\"error\":\"ACCOUNT_DEACTIVATED\"}");
+                    })
                 )
                 .logout(logout -> 
                     logout

@@ -43,9 +43,12 @@
                         <p class="field-error">Please enter your password.</p>
                     }
                 </div>
-
                 @if (errorMessage) {
                     <p class="form-error">{{ errorMessage }}</p>
+
+                    @if (showVerifyEmailLink) {
+                        <a routerLink="/verify-email" class="message-link">Verify email</a>
+                    }
                 }
 
                 <button class="primary-button" type="submit" [disabled]="isSubmitting">

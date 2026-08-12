@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -31,6 +32,7 @@ import jm.gov.jca.transshipment_api.auth.dto.CurrentUserResponse;
 import jm.gov.jca.transshipment_api.auth.dto.LoginRequest;
 import jm.gov.jca.transshipment_api.auth.dto.ResendVerificationRequest;
 import jm.gov.jca.transshipment_api.auth.dto.VerifyEmailRequest;
+import jm.gov.jca.transshipment_api.user.Status;
 import jm.gov.jca.transshipment_api.user.UserAccount;
 import jm.gov.jca.transshipment_api.user.UserRepository;
 import jm.gov.jca.transshipment_api.user.UserService;
@@ -96,13 +98,37 @@ public class AuthController {
         
             Authentication authentication =
                     authenticationManager.authenticate(authenticationRequest);
-            
+
             // temp
             System.out.println("AUTHENTICATION SUCCESS: " + authentication.getName());
 
+            UserAccount user = userRepository
+                .findByEmailIgnoreCase(request.email().trim())
+                .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "User account not found"
+                ));
+            
+                if (user.getStatus() == Status.PENDING_CONFIRMATION) {
+                    return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of(
+                            "error",
+                            "EMAIL_NOT_VERIFIED"
+                        ));
+                }
+
+                if (user.getStatus() == Status.DEACTIVATED) {
+                    return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of(
+                            "error",
+                            "ACCOUNT_DEACTIVATED"
+                        ));
+                }
+
             // Protect against session fixation
-            sessionAuthenticationStrategy
-                .onAuthentication(authentication, httpRequest, httpResponse);
+            sessionAuthenticationStrategy.onAuthentication(authentication, httpRequest, httpResponse);
             
             System.out.println("SESSION STRATEGY SUCCESS");
 
@@ -133,7 +159,16 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(Map.of("error", "Internal authentication error"));
 
-        } catch(AuthenticationException ex){
+        } catch (DisabledException ex) {
+            return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of(
+                    "error",
+                    "ACCOUNT_DEACTIVATED"
+                ));
+        }
+        
+        catch(AuthenticationException ex){
             
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("error", "Invalid email or password"));
