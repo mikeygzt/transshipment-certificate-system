@@ -1,6 +1,7 @@
 package jm.gov.jca.transshipment_api.transshipment_request.dto;
 
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,7 +39,8 @@ public record TransshipmentDetailsResponse(
         RequestStatus status,
         String reviewComments,
         String pdfCertificatePath,
-        List<ContainerDetailsResponse> containers
+        List<ContainerDetailsResponse> containers,
+        Instant createdAt
 
 ) {
 

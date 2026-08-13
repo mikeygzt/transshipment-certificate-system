@@ -1,0 +1,405 @@
+<main class="modal-content">
+    <button type="button" class="modal-close-button" aria-label="Close" (click)="close()">
+        <span class="x-button">✕</span>
+    </button>
+
+    <div class="form-content">
+        <form class="create-form" [formGroup]="form" (ngSubmit)="submit()">
+
+            <div class="form-heading">
+                <h1>1. Applicant/Shipping Agent Details</h1>
+            </div>
+            <hr class="divider">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="shippingAgentName">Name of Shipping Agent / Company <span class="required-asterisk">*</span></label>
+                    <input
+                        id="shippingAgentName"
+                        type="text"
+                        formControlName="shippingAgentName"
+                        placeholder="ABC Shipping Agency Ltd">
+
+                    @if (form.controls.shippingAgentName.touched && form.controls.shippingAgentName.invalid) {
+                        <p class="field-error">Please enter a valid shipping agent name.</p>
+                    }
+                </div>
+                <div class="form-group">
+                    <label for="agentCodeJca">Agent Code / JCA Registration No.</label>
+                    <input
+                        id="agentCodeJca"
+                        type="text"
+                        formControlName="agentCodeJca"
+                        placeholder="Agent or Declarant Code">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="trn">TRN <span class="required-asterisk">*</span></label>
+                    <input
+                        id="trn"
+                        type="text"
+                        inputmode="numeric"
+                        formControlName="trn"
+                        placeholder="0001112221000"
+                        maxlength="13">
+
+                    @if (form.controls.trn.touched && form.controls.trn.invalid) {
+                        <p class="field-error">This field must contain exactly 13 digits.</p>
+                    }
+                </div>
+                <div class="form-group">
+                    <label for="applicantName">Applicant Name <span class="required-asterisk">*</span></label>
+                    <input
+                        id="applicantName"
+                        type="text"
+                        formControlName="applicantName"
+                        placeholder="Full name of person submitting">
+
+                    @if (form.controls.applicantName.touched && form.controls.applicantName.invalid) {
+                        <p class="field-error">Please enter a valid applicant name.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="emailAddress">Email Address <span class="required-asterisk">*</span></label>
+                    <input
+                        id="emailAddress"
+                        type="email"
+                        formControlName="emailAddress"
+                        autocomplete="email"
+                        placeholder="name@company.com">
+
+                    @if (form.controls.emailAddress.touched && form.controls.emailAddress.invalid) {
+                        <p class="field-error">Please enter a valid email address.</p>
+                    }
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumber">Telephone <span class="required-asterisk">*</span></label>
+                    <input
+                        id="phoneNumber"
+                        type="tel"
+                        formControlName="phoneNumber"
+                        autocomplete="tel"
+                        placeholder="876-000-0000"
+                        maxlength="12">
+
+                    @if (form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid) {
+                        <p class="field-error">Please enter a valid telephone number.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="form-heading">
+                <h1>2. Request Details</h1>
+            </div>
+            <hr class="divider">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="requestType">Request Type <span class="required-asterisk">*</span></label>
+                    <select id="requestType" formControlName="requestType">
+                        <option value="" disabled>Please Select an Option</option>
+                        @for (type of requesttype; track type.id) {
+                            <option [value]="type.name">{{ type.name }}</option>
+                        }
+                    </select>
+
+                    @if (form.controls.requestType.touched && form.controls.requestType.invalid) {
+                        <p class="field-error">Please select a request type.</p>
+                    }
+                </div>
+                <div class="form-group">
+                    <label for="portTerminal">Port / Terminal <span class="required-asterisk">*</span></label>
+                    <select id="portTerminal" formControlName="portTerminal">
+                        <option value="" disabled>Please Select an Option</option>
+                        @for (terminal of portterminal; track terminal.id) {
+                            <option [value]="terminal.name">{{ terminal.name }}</option>
+                        }
+                    </select>
+
+                    @if (form.controls.portTerminal.touched && form.controls.portTerminal.invalid) {
+                        <p class="field-error">Please select a port / terminal.</p>
+                    }
+                </div>
+                <div class="form-group">
+                    <label for="purposeOfCertificate">Purpose of Certificate <span class="required-asterisk">*</span></label>
+                    <select id="purposeOfCertificate" formControlName="purposeOfCertificate">
+                        <option value="" disabled>Please Select an Option</option>
+                        @for (purpose of certificatepurpose; track purpose.id) {
+                            <option [value]="purpose.name">{{ purpose.name }}</option>
+                        }
+                    </select>
+
+                    @if (form.controls.purposeOfCertificate.touched && form.controls.purposeOfCertificate.invalid) {
+                        <p class="field-error">Please select a purpose.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="inboundVoyageNo">Inbound Voyage No. <span class="required-asterisk">*</span></label>
+                    <input
+                        id="inboundVoyageNo"
+                        type="text"
+                        formControlName="inboundVoyageNo"
+                        placeholder="Inbound Voyage No.">
+
+                    @if (form.controls.inboundVoyageNo.touched && form.controls.inboundVoyageNo.invalid) {
+                        <p class="field-error">Please enter a valid inbound voyage number.</p>
+                    }
+                </div>
+                <div class="form-group">
+                    <label for="inboundVesselName">Inbound Vessel Name <span class="required-asterisk">*</span></label>
+                    <input
+                        id="inboundVesselName"
+                        type="text"
+                        formControlName="inboundVesselName"
+                        placeholder="Inbound Vessel Name">
+
+                    @if (form.controls.inboundVesselName.touched && form.controls.inboundVesselName.invalid) {
+                        <p class="field-error">Please enter a valid inbound vessel name.</p>
+                    }
+                </div>
+                <div class="form-group">
+                    <label for="dateOfArrival">Date of Arrival <span class="required-asterisk">*</span></label>
+                    <input
+                        id="dateOfArrival"
+                        type="date"
+                        formControlName="dateOfArrival">
+
+                    @if (form.controls.dateOfArrival.touched && form.controls.dateOfArrival.invalid) {
+                        <p class="field-error">Please select a date of arrival.</p>
+                    }
+                    @if (form.controls.dateOfArrival.touched && form.errors?.['departureBeforeArrival']) {
+                        <p class="field-error">Departure date must be after the date of arrival.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="outboundVoyageNumber">Outbound Voyage No. <span class="required-asterisk">*</span></label>
+                    <input
+                        id="outboundVoyageNumber"
+                        type="text"
+                        formControlName="outboundVoyageNumber"
+                        placeholder="Outbound Voyage No.">
+
+                    @if (form.controls.outboundVoyageNumber.touched && form.controls.outboundVoyageNumber.invalid) {
+                        <p class="field-error">Please enter a valid outbound voyage number.</p>
+                    }
+                </div>
+                <div class="form-group">
+                    <label for="outboundVesselName">Outbound Vessel Name <span class="required-asterisk">*</span></label>
+                    <input
+                        id="outboundVesselName"
+                        type="text"
+                        formControlName="outboundVesselName"
+                        placeholder="Outbound Vessel Name">
+
+                    @if (form.controls.outboundVesselName.touched && form.controls.outboundVesselName.invalid) {
+                        <p class="field-error">Please enter a valid outbound vessel name.</p>
+                    }
+                </div>
+                <div class="form-group">
+                    <label for="expectedDepartureDate">Expected / Actual Departure Date <span class="required-asterisk">*</span></label>
+                    <input
+                        id="expectedDepartureDate"
+                        type="date"
+                        formControlName="expectedDepartureDate">
+
+                    @if (form.controls.expectedDepartureDate.touched && form.controls.expectedDepartureDate.invalid) {
+                        <p class="field-error">Please select a departure date.</p>
+                    }
+                    @if (form.controls.expectedDepartureDate.touched && form.errors?.['departureBeforeArrival']) {
+                        <p class="field-error">Departure date must be after the date of arrival.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="manifestNumber">Manifest Number <span class="required-asterisk">*</span></label>
+                    <input
+                        id="manifestNumber"
+                        type="text"
+                        formControlName="manifestNumber"
+                        placeholder="Cargo Manifest reference">
+
+                    @if (form.controls.manifestNumber.touched && form.controls.manifestNumber.invalid) {
+                        <p class="field-error">Please enter a valid manifest number.</p>
+                    }
+                </div>
+                <div class="form-group">
+                    <label for="billOfLadingWaybill">Bill of Lading / Waybill <span class="required-asterisk">*</span></label>
+                    <input
+                        id="billOfLadingWaybill"
+                        type="text"
+                        formControlName="billOfLadingWaybill"
+                        placeholder="B/L or Waybill Number">
+
+                    @if (form.controls.billOfLadingWaybill.touched && form.controls.billOfLadingWaybill.invalid) {
+                        <p class="field-error">Please enter a valid bill of lading / waybill number.</p>
+                    }
+                </div>
+                <div class="form-group">
+                    <label for="rotationCallReference">Rotation / Call Reference</label>
+                    <input
+                        id="rotationCallReference"
+                        type="text"
+                        formControlName="rotationCallReference"
+                        placeholder="Port Call or Rotation Number">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group" id="remarks">
+                    <label for="remarksInstructions">Remarks / Special Instructions</label>
+                    <textarea
+                        id="remarksInstructions"
+                        formControlName="remarksInstructions"
+                        placeholder="State any special circumstances, overseas authority request"
+                        rows="4"
+                        style="resize: none;">
+                    </textarea>
+
+                </div>
+            </div>
+
+            <div class="form-heading">
+                <h1>3. Container Details</h1>
+            </div>
+            <hr class="divider">
+
+            <div class="container-details" formArrayName="containers">
+                @for (container of containers.controls; track container; let i = $index) {
+                    <div [formGroupName]="i" class="container-block">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label [for]="'containerNumber-' + i">Container Number <span class="required-asterisk">*</span></label>
+                                <input
+                                    [id]="'containerNumber-' + i"
+                                    type="text"
+                                    formControlName="containerNumber"
+                                    placeholder="e.g. ABCD1234567">
+
+                                @if (container.get('containerNumber')?.touched && container.get('containerNumber')?.invalid) {
+                                    <p class="field-error">Please enter a valid container number.</p>
+                                }
+                            </div>
+                            <div class="form-group">
+                                <label [for]="'sealNumber-' + i">Seal No.</label>
+                                <input
+                                    [id]="'sealNumber-' + i"
+                                    type="text"
+                                    formControlName="sealNumber"
+                                    placeholder="Seal Reference">
+                            </div>
+                            <div class="form-group">
+                                <label [for]="'sizeType-' + i">Size / Type <span class="required-asterisk">*</span></label>
+                                <select [id]="'sizeType-' + i" formControlName="sizeType">
+                                    <option value="" disabled>Please Select an Option</option>
+                                    @for (size of sizetype; track size.id) {
+                                        <option [value]="size.name">{{ size.name }}</option>
+                                    }
+                                </select>
+
+                                @if (container.get('sizeType')?.touched && container.get('sizeType')?.invalid) {
+                                    <p class="field-error">Please select a size / type.</p>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label [for]="'cargoDescription-' + i">Cargo Description</label>
+                                <input
+                                    [id]="'cargoDescription-' + i"
+                                    type="text"
+                                    formControlName="cargoDescription"
+                                    placeholder="General Description">
+                            </div>
+                            <div class="form-group">
+                                <label [for]="'packages-' + i">Packages</label>
+                                <input
+                                    [id]="'packages-' + i"
+                                    type="number"
+                                    formControlName="packages"
+                                    min="0"
+                                    placeholder="No. of Packages">
+                            </div>
+                            <div class="form-group">
+                                <label [for]="'grossWeightKg-' + i">Gross Weight (Kg)</label>
+                                <input
+                                    [id]="'grossWeightKg-' + i"
+                                    type="number"
+                                    formControlName="grossWeightKg"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="Weight">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label [for]="'yardLocation-' + i">Yard Location</label>
+                                <input
+                                    [id]="'yardLocation-' + i"
+                                    type="text"
+                                    formControlName="yardLocation"
+                                    placeholder="Block / Position, if Known">
+                            </div>
+                            <div class="form-group">
+                                <label [for]="'origin-' + i">Origin</label>
+                                <input
+                                    [id]="'origin-' + i"
+                                    type="text"
+                                    formControlName="origin"
+                                    placeholder="Country / port of loading">
+                            </div>
+                            <div class="form-group">
+                                <label [for]="'finalDestination-' + i">Final Destination</label>
+                                <input
+                                    [id]="'finalDestination-' + i"
+                                    type="text"
+                                    formControlName="finalDestination"
+                                    placeholder="Country / port of discharge">
+                            </div>
+                        </div>
+
+                        <div class="container-buttons">
+                            <button type="button" class="add-container" (click)="addContainer()">
+                                <span>Add Container</span>
+                            </button>
+                            @if (containers.length > 1) {
+                                <button type="button" class="remove-container" (click)="removeContainer(i)">
+                                    <span>Remove Container</span>
+                                </button>
+                            }
+                        </div>
+
+                        @if (i < containers.length - 1) {
+                            <hr id="container-line">
+                        }
+                    </div>
+                }
+            </div>
+
+            @if (errorMessage) {
+                <p class="form-error">{{ errorMessage }}</p>
+            }
+
+            <div class="save-submit">
+                <button class="primary-button" type="submit" [disabled]="isSubmitting">
+                    {{ isSubmitting ? "Updating..." : "Update Request" }}
+                </button>
+            </div>
+
+        </form>
+    </div>
+</main>

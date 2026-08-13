@@ -17,7 +17,7 @@ import jm.gov.jca.transshipment_api.transshipment_request.dto.TransshipmentDetai
 )
 public interface RequestMapper{
 
-    @Mapping(target = "status", ignore = true)
+    //removed the ignore for the status
     @Mapping(target = "requesterUserId", ignore = true)
     void updateEntityFromRequest(TransshipmentDetailsRequest request, @MappingTarget TransshipmentRequest entity);
 

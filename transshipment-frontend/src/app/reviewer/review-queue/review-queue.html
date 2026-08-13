@@ -1,1 +1,286 @@
-<app-dashboard-layout [role]="'REVIEWER'"></app-dashboard-layout>
+<app-dashboard-layout [role]="'REVIEWER'">
+
+    <section class="request-page">
+        <header class="page-header">
+            <div>
+                <h1>Review Queue</h1>
+                
+                <p>Accept or Reject Requests.</p>
+            </div>
+        </header>
+    </section>
+
+    @if (requests().length > 0) {
+        <div
+        class="request-toolbar">
+        <label class="search">
+            <svg
+            lucideSearch
+            class="search-icon"
+            aria-hidden="true"
+            ></svg>
+
+            <input 
+            type="search"
+            placeholder="Search by Creation Date, Manifest Number, or Bill of Lading"
+            aria-label = "Search requests"
+            (input)="updateSearch($event)"
+
+            >
+
+            <button type="button" class="filter-button">
+                    <svg
+                        lucideListFilter
+                        class="button-icon"
+                        aria-hidden="true"
+                    ></svg>
+
+                    <span>Filter</span>
+            </button>
+
+
+        </label>
+        </div>
+
+        <div class="table-container">
+        <table class="request-table">
+            <thead>
+                <tr>
+                    <th scope="col">Date of Creation</th>
+                    <th scope="col">Request Type</th>
+                    <th scope="col">Manifest Number</th>
+                    <th scope="col">Bill of Lading</th>
+                    <th scope="col">Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @for (request of filteredRequests(); track request.requestId) {
+                    <tr class="request-row"
+                        [class.selected-row]="selectedRequest()?.requestId === request.requestId"
+                        (click)="openRequestDetails(request)"
+                    >
+                        <td>
+                            {{ request.createdAt }}
+                        </td>
+                        <td>
+                            <span class="request-type-label">
+                                {{ request.requestType }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ request.manifestNumber || "-" }}
+                        </td>
+                        <td>
+                            {{ request.billOfLadingWaybill || "-" }}
+                        </td>
+                        <td>
+                            <span
+                                class="request-status-badge"
+                                [class.submitted-status]="request.status === 'SUBMITTED'"
+                                [class.under-review-status]="request.status === 'UNDER_REVIEW'"
+                                [class.approved-status]="request.status === 'APPROVED'"
+                                [class.rejected-status]="request.status === 'REJECTED'"
+                                [class.resubmitted-status]="request.status === 'RESUBMITTED'"
+                            >
+                                {{ getStatusLabel(request.status) }}
+                            </span>
+                        </td>
+                    </tr>
+                } @empty {
+                    <tr>
+                        <td colspan="5" class="empty-result">No requests match your search.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    } @else {
+        <div
+        class="no-requests">
+        <h3>There are currently no requests that need review.</h3>
+        </div>
+    }
+
+    @if (selectedRequest(); as request) {
+    <div class="drawer-backdrop" (click)="closeRequestDetails()">
+        <aside
+            class="details-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="drawer-title"
+            (click)="$event.stopPropagation()"
+        >
+            <header class="drawer-header">
+                <div>
+                    <span class="drawer-label">Transshipment request</span>
+                    <h2 id="drawer-title">Request Details</h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="drawer-close-button"
+                    aria-label="Close request details"
+                    (click)="closeRequestDetails()"
+                >
+                    <svg
+                        lucideX
+                        aria-hidden="true"
+                    ></svg>
+                </button>
+            </header>
+
+            <section class="drawer-request-summary">
+                <span class="drawer-avatar" aria-hidden="true">
+                    {{ request.requestType?.charAt(0)?.toUpperCase() ?? "?" }}
+                </span>
+
+                <div>
+                    <h3>{{ request.requestType }}</h3>
+                    <p>{{ request.manifestNumber }}</p>
+                </div>
+            </section>
+
+            <div class="drawer-content">
+                <section class="details-section">
+                    <h3>Request information</h3>
+
+                    <dl class="details-list">
+                        <div class="detail-item">
+                            <dt>Port / Terminal</dt>
+                            <dd>{{ request.portTerminal }}</dd>
+                        </div>
+
+                        <div class="detail-item">
+                            <dt>Purpose of Certificate</dt>
+                            <dd>{{ request.purposeOfCertificate }}</dd>
+                        </div>
+
+                        <div class="detail-item">
+                            <dt>Inbound Voyage No.</dt>
+                            <dd>{{ request.inboundVoyageNo }}</dd>
+                        </div>
+
+                        <div class="detail-item">
+                            <dt>Inbound Vessel</dt>
+                            <dd>{{ request.inboundVesselName || "Not provided" }}</dd>
+                        </div>
+
+                        <div class="detail-item">
+                            <dt>Date of Arrival</dt>
+                            <dd>{{ request.dateOfArrival || "Not provided" }}</dd>
+                        </div>
+
+                        <div class="detail-item">
+                            <dt>Outbound Voyage No.</dt>
+                            <dd>{{ request.outboundVoyageNumber }}</dd>
+                        </div>
+
+                        <div class="detail-item">
+                            <dt>Outbound Vessel</dt>
+                            <dd>{{ request.outboundVesselName }}</dd>
+                        </div>
+
+                        <div class="detail-item">
+                            <dt>Expected Departure</dt>
+                            <dd>{{ request.expectedDepartureDate || "Not provided" }}</dd>
+                        </div>
+
+                        <div class="detail-item">
+                            <dt>Bill of Lading / Waybill</dt>
+                            <dd>{{ request.billOfLadingWaybill }}</dd>
+                        </div>
+
+                        <div class="detail-item">
+                            <dt>Rotation Call Reference</dt>
+                            <dd>{{ request.rotationCallReference || "Not provided" }}</dd>
+                        </div>
+
+                        <div class="detail-item">
+                            <dt>Remarks / Instructions</dt>
+                            <dd>{{ request.remarksInstructions || "Not provided" }}</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section class="details-section">
+                    <h3>Status information</h3>
+
+                    <dl class="details-list">
+                        <div class="detail-item">
+                            <dt>Status</dt>
+                            <dd>
+                                <span
+                                    class="request-status-badge"
+                                    [class.submitted-status]="request.status === 'SUBMITTED'"
+                                    [class.under-review-status]="request.status === 'UNDER_REVIEW'"
+                                    [class.approved-status]="request.status === 'APPROVED'"
+                                    [class.rejected-status]="request.status === 'REJECTED'"
+                                    [class.resubmitted-status]="request.status === 'RESUBMITTED'"
+                                >
+                                    {{ getStatusLabel(request.status) }}
+                                </span>
+                            </dd>
+                        </div>
+
+                        <div class="detail-item">
+                            <dt>Review Comments</dt>
+                            <dd>{{ request.reviewComments || "None yet" }}</dd>
+                        </div>
+
+                        <div class="detail-item">
+                            <dt>Created</dt>
+                            <dd>{{ request.createdAt }}</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section class="details-section">
+                    <h3>Containers</h3>
+
+                    @for (container of request.containers; track container.containerId) {
+                        <dl class="details-list container-block">
+                            <div class="detail-item">
+                                <dt>Container Number</dt>
+                                <dd>{{ container.containerNumber }}</dd>
+                            </div>
+
+                            <div class="detail-item">
+                                <dt>Size / Type</dt>
+                                <dd>{{ container.sizeType }}</dd>
+                            </div>
+
+                            <div class="detail-item">
+                                <dt>Seal Number</dt>
+                                <dd>{{ container.sealNumber || "Not provided" }}</dd>
+                            </div>
+
+                            <div class="detail-item">
+                                <dt>Cargo Description</dt>
+                                <dd>{{ container.cargoDescription || "Not provided" }}</dd>
+                            </div>
+                        </dl>
+                    }
+                </section>
+            </div>
+
+                <div class="drawer-change-bar">
+                    <span>This request is under review.</span>
+
+                    <div class="change-actions">
+                        <button
+                            type="button"
+                            class="edit-button"
+                            (click)="openReviewModal(request)"
+                        >
+                            Review Request
+                        </button>
+                    </div>
+                </div>
+        </aside>
+    </div>
+}
+    
+
+
+</app-dashboard-layout>

@@ -1,0 +1,239 @@
+<main class="modal-content">
+    <button type="button" class="modal-close-button" aria-label="Close" (click)="close()">
+        <span class="x-button">✕</span>
+    </button>
+
+    <div class="form-content">
+
+        <div class="form-heading">
+            <h1>Applicant / Shipping Agent Details</h1>
+        </div>
+        <hr class="divider">
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Name of Shipping Agent / Company</label>
+                <p>{{ request.shippingAgentName }}</p>
+            </div>
+            <div class="form-group">
+                <label>Agent Code / JCA Registration No.</label>
+                <p>{{ request.agentCodeJca || "Not provided" }}</p>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>TRN</label>
+                <p>{{ request.trn }}</p>
+            </div>
+            <div class="form-group">
+                <label>Applicant Name</label>
+                <p>{{ request.applicantName }}</p>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Email Address</label>
+                <p>{{ request.emailAddress }}</p>
+            </div>
+            <div class="form-group">
+                <label>Telephone</label>
+                <p>{{ request.phoneNumber }}</p>
+            </div>
+        </div>
+
+        <div class="form-heading">
+            <h1>Request Details</h1>
+        </div>
+        <hr class="divider">
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Request Type</label>
+                <p>{{ request.requestType }}</p>
+            </div>
+            <div class="form-group">
+                <label>Port / Terminal</label>
+                <p>{{ request.portTerminal }}</p>
+            </div>
+            <div class="form-group">
+                <label>Purpose of Certificate</label>
+                <p>{{ request.purposeOfCertificate }}</p>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Inbound Voyage No.</label>
+                <p>{{ request.inboundVoyageNo }}</p>
+            </div>
+            <div class="form-group">
+                <label>Inbound Vessel Name</label>
+                <p>{{ request.inboundVesselName }}</p>
+            </div>
+            <div class="form-group">
+                <label>Date of Arrival</label>
+                <p>{{ request.dateOfArrival || "Not provided" }}</p>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Outbound Voyage No.</label>
+                <p>{{ request.outboundVoyageNumber }}</p>
+            </div>
+            <div class="form-group">
+                <label>Outbound Vessel Name</label>
+                <p>{{ request.outboundVesselName }}</p>
+            </div>
+            <div class="form-group">
+                <label>Expected / Actual Departure Date</label>
+                <p>{{ request.expectedDepartureDate || "Not provided" }}</p>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Manifest Number</label>
+                <p>{{ request.manifestNumber }}</p>
+            </div>
+            <div class="form-group">
+                <label>Bill of Lading / Waybill</label>
+                <p>{{ request.billOfLadingWaybill }}</p>
+            </div>
+            <div class="form-group">
+                <label>Rotation / Call Reference</label>
+                <p>{{ request.rotationCallReference || "Not provided" }}</p>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group" id="remarks">
+                <label>Remarks / Special Instructions</label>
+                <p>{{ request.remarksInstructions || "Not provided" }}</p>
+            </div>
+        </div>
+
+        <div class="form-heading">
+            <h1>Container Details</h1>
+        </div>
+        <hr class="divider">
+
+        <div class="container-details">
+            @for (container of request.containers; track container.containerId; let i = $index) {
+                <div class="container-block">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Container Number</label>
+                            <p>{{ container.containerNumber }}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Seal No.</label>
+                            <p>{{ container.sealNumber || "Not provided" }}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Size / Type</label>
+                            <p>{{ container.sizeType }}</p>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Cargo Description</label>
+                            <p>{{ container.cargoDescription || "Not provided" }}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Packages</label>
+                            <p>{{ container.packages }}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Gross Weight (Kg)</label>
+                            <p>{{ container.grossWeightKg }}</p>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Yard Location</label>
+                            <p>{{ container.yardLocation || "Not provided" }}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Origin</label>
+                            <p>{{ container.origin || "Not provided" }}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Final Destination</label>
+                            <p>{{ container.finalDestination || "Not provided" }}</p>
+                        </div>
+                    </div>
+
+                    @if (i < request.containers.length - 1) {
+                        <hr id="container-line">
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+
+    <div class="review-decision-panel">
+        <form [formGroup]="decisionForm" (ngSubmit)="submit()">
+
+            <div class="decision-options">
+                <label class="decision-radio">
+                    <input
+                        type="radio"
+                        formControlName="decision"
+                        value="APPROVED"
+                        (change)="onDecisionChange()">
+                    <span>Accept</span>
+                </label>
+
+                <label class="decision-radio">
+                    <input
+                        type="radio"
+                        formControlName="decision"
+                        value="REJECTED"
+                        (change)="onDecisionChange()">
+                    <span>Reject</span>
+                </label>
+            </div>
+
+            @if (decisionForm.controls.decision.touched && decisionForm.controls.decision.invalid) {
+                <p class="field-error">Please select Accept or Reject.</p>
+            }
+
+            <div class="form-group" id="remarks">
+                <label for="reviewComments">
+                    Review Comments
+                    @if (isRejectSelected) {
+                        <span class="required-asterisk">*</span>
+                    }
+                </label>
+                <textarea
+                    id="reviewComments"
+                    type="text"
+                    formControlName="reviewComments"
+                    placeholder="Add any comments for the applicant"
+                    rows="4"
+                    style="resize: none;"></textarea>
+
+                @if (decisionForm.controls.reviewComments.touched && decisionForm.controls.reviewComments.invalid) {
+                    <p class="field-error">Review comments are required when rejecting a request.</p>
+                }
+            </div>
+
+            @if (errorMessage) {
+                <p class="form-error">{{ errorMessage }}</p>
+            }
+
+            <div class="save-submit">
+                <button class="primary-button" type="submit" [disabled]="isSubmitting">
+                    {{ isSubmitting ? "Submitting..." : "Submit Decision" }}
+                </button>
+            </div>
+
+        </form>
+    </div>
+</main>
