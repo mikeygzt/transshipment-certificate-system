@@ -23,16 +23,57 @@
                     (input)="updateSearch($event)"
                 />
             </label>
-
-            <button type="button" class="filter-button">
-                <svg
-                    lucideListFilter
-                    class="button-icon"
-                    aria-hidden="true"
-                ></svg>
-
-                <span>Filter</span>
-            </button>
+            
+            <div class="filter-wrapper">
+                <button 
+                    type="button" 
+                    class="filter-button"
+                    (click)="toggleFilter()">
+                    <svg
+                        lucideListFilter
+                        class="button-icon"
+                        aria-hidden="true"
+                    ></svg>
+    
+                    <span>Filter</span>
+                </button>
+    
+                @if(isFilterOpen()) {
+                    <div class="filter-menu">
+                        <div class="filter-field">
+                            <label for="roleField">Role</label>
+    
+                            <select
+                                id="roleFilter"
+                                [value]="roleFilter()"
+                                (change)="roleFilter.set($any($event.target).value)"
+                            >
+                                <option value="ALL">All roles</option>
+                                <option value="ADMIN">Admin</option>
+                                <option value="REVIEWER">Reviewer</option>
+                                <option value="REQUESTER">Requester</option>
+                            </select>
+                        </div>
+    
+                        <div class="filter-field">
+                            <label for="statusFilter">Status</label>
+    
+                            <select
+                                id="statusFilter"
+                                [value]="statusFilter()"
+                                (change)="statusFilter.set($any($event.target).value)"
+                            >
+                                <option value="ALL">All statuses</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="DEACTIVATED">Deactivated</option>
+                                <option value="PENDING_CONFIRMATION">Pending Confirmation</option>
+                            </select>
+                        </div>
+    
+                        <button type="button" class="clear-filter-button" (click)="clearFilters()">Clear</button>
+                    </div>
+                }
+            </div>
         </div>
 
         @if (isLoading()) {
@@ -397,32 +438,39 @@
                         </dl>
                     </section>
 
-                    @if (user.status !== "DEACTIVATED") {
-                        <section class="danger-section">
-                            <div class="danger-heading">
-                                <svg
-                                    lucideTriangleAlert
-                                    aria-hidden="true"
-                                ></svg>
-            
-                                <h3>Danger zone</h3>
-                            </div>
+                    <section class="danger-section">
+                        <div class="danger-heading">
+                            <svg
+                                lucideTriangleAlert
+                                aria-hidden="true"
+                            ></svg>
+        
+                            <h3>Danger zone</h3>
+                        </div>
 
+                        @if (user.status !== "ACTIVE") {
+                            <button
+                                type="button"
+                                class="activate-button"
+                                (click)="openActivateConfirmation()">
+                                Activate account
+                            </button>
+                        } @else {
                             <button
                                 type="button"
                                 class="deactivate-button"
                                 (click)="openDeactivateConfirmation()">
                                 Deactivate account
                             </button>
+                        }
 
-                            <button
-                                type="button"
-                                class="delete-button"
-                                (click)="openDeleteConfirmation()">
-                                Delete account
-                            </button>
-                        </section>
-                    }
+                        <button
+                            type="button"
+                            class="delete-button"
+                            (click)="openDeleteConfirmation()">
+                            Delete account
+                        </button>
+                    </section>
                 </div>
 
                 @if (saveErrorMessage() && isEditingFullName()) {
@@ -460,16 +508,16 @@
                     </div>
                 }
 
-                @if (deactivateErrorMessage()) {
-                    <p class="deactivate-error">
-                        {{ deactivateErrorMessage() }}
+                @if (dangerZoneErrorMessage()) {
+                    <p class="danger-zone-error">
+                        {{ dangerZoneErrorMessage() }}
                     </p>
                 }
 
                 @if (showDeactivateConfirmation()) {
-                    <div class="deactivate-confirmation">
+                    <div class="danger-zone-confirmation">
                         <div>
-                            <strong>Deactivate this account</strong>
+                            <strong class="deactivate-confirmation-strong">Deactivate this account</strong>
 
                             <p>{{ user.fullName }} will no longer be able to sign in.</p>
                         </div>
@@ -493,10 +541,36 @@
                     </div>
                 }
 
-                @if (showDeleteConfirmation()) {
-                      <div class="deactivate-confirmation">
+                @if (showActivateConfirmation()) {
+                      <div class="danger-zone-confirmation danger-zone-confirmation-active">
                         <div>
-                            <strong>Delete this account</strong>
+                            <strong class="activate-confirmation-strong">Activate this account</strong>
+
+                            <p>{{ user.fullName }}'s account will be activated.</p>
+                        </div>
+
+                        <div class="confirmation-actions">
+                            <button
+                                type="button"
+                                class="cancel-button"
+                                (click)="cancelActivate()">
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                class="confirm-activate-button"
+                                (click)="activateSelectedUser()">
+                                {{ isActivating() ? "Activating..." : "Activate" }}
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                @if (showDeleteConfirmation()) {
+                      <div class="danger-zone-confirmation">
+                        <div>
+                            <strong class="deactivate-confirmation-strong">Delete this account</strong>
 
                             <p>{{ user.fullName }}'s account will be permanently deleted.</p>
                         </div>
@@ -511,8 +585,9 @@
 
                             <button
                                 type="button"
-                                class="confirm-deactivate-button">
-                                Delete
+                                class="confirm-deactivate-button"
+                                (click)="deleteSelectedUser()">
+                                {{ isDeleting() ? "Deleting..." : "Delete"}}
                             </button>
                         </div>
                     </div>

@@ -84,6 +84,10 @@
     pointer-events: none;
 }
 
+.filter-wrapper {
+    position: relative;
+}
+
 .filter-button {
     min-height: 44px;
     display: inline-flex;
@@ -103,6 +107,62 @@
 
 .filter-button:hover {
     background: #f8fafc;
+}
+
+.filter-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 50;
+
+    width: 280px;
+    padding: 18px;
+
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.12);
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.filter-field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.filter-field select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    font: inherit;
+}
+
+.filter-field select:focus {
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
+}
+
+.clear-filter-button {
+    padding: 7px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    cursor: pointer;
 }
 
 .button-icon {
@@ -589,7 +649,9 @@
     line-height: 1.5;
 }
 
-.deactivate-button, .delete-button {
+.deactivate-button, 
+.delete-button, 
+.activate-button {
     min-height: 38px;
     margin-top: 16px;
     padding: 0 14px;
@@ -611,6 +673,16 @@
     background: #fff1f0;
 }
 
+.activate-button {
+    border: 1px solid #1769e0;
+    background: #ffffff;
+    color: #1769e0;
+}
+
+.activate-button:hover {
+    background: #edf5ff;
+}
+
 .delete-button {
     border: 1px solid #d92d20;
     background: #d92d20;
@@ -621,7 +693,7 @@
     background: #b42318;
 }
 
-.deactivate-confirmation {
+.danger-zone-confirmation {
     flex: 0 0 auto;
     display: flex;
     align-items: center;
@@ -633,12 +705,22 @@
     box-shadow: 0 -6px 18px rgb(15 23 42 / 7%);
 }
 
-.deactivate-confirmation strong {
+.deactivate-confirmation-strong {
     color: #b42318;
     font-size: 0.85rem;
 }
 
-.deactivate-confirmation p {
+.danger-zone-confirmation-active {
+    border-top: 1px solid #cacdfe;
+    background: #f6fbff;
+}
+
+.activate-confirmation-strong {
+    color: #1769e0;
+    font-size: 0.85rem;
+}
+
+.danger-zone-confirmation p {
     margin: 4px 0 0;
     color: #667085;
     font-size: 0.76rem;
@@ -650,31 +732,44 @@
     flex: 0 0 auto;
 }
 
-.confirm-deactivate-button {
+.confirm-deactivate-button, .confirm-activate-button {
     min-height: 36px;
     padding: 0 36px;
-    border: 1px solid #d92d20;
     border-radius: 7px;
-    background: #d92d20;
-    color: #ffffff;
     font: inherit;
     font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
 }
 
+.confirm-deactivate-button {
+    border: 1px solid #d92d20;
+    background: #d92d20;
+    color: #ffffff;
+}
+
+.confirm-activate-button {
+    border: 1px solid #1769e0;
+    background: #1769e0;
+    color: #ffffff;
+}
+
 .confirm-deactivate-button:hover {
     background: #b42318;
 }
 
-.deactivate-error {
+.confirm-activate-button:hover {
+    background: #155ecb;
+}
+
+.danger-zone-error {
     color: #b42318;
     font-size: 0.78rem;
     margin: 0 10px;
     padding: 10px;
 }
 
-.confirm-deactivate-button:disabled {
+.confirm-deactivate-button:disabled, .confirm-activate-button:disabled {
     cursor: not-allowed;
     opacity: 0.6;
 }

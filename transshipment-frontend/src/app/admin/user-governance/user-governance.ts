@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DashboardLayout } from '../../shared/dashboard-layout/dashboard-layout';
 import { UserGovernanceService } from './user-governance.service';
-import { UserResponse, UserRole } from '../../auth.models';
+import { UserResponse, UserRole, UserStatus } from '../../auth.models';
 import { finalize } from 'rxjs';
 import { LucideListFilter, LucideSearch, LucideSquarePen, LucideTriangleAlert, LucideX } from '@lucide/angular';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -41,13 +41,17 @@ export class UserGovernance {
   readonly saveErrorMessage = signal("");
 
   readonly showDeactivateConfirmation = signal(false);
+  readonly showActivateConfirmation = signal(false);
   readonly showDeleteConfirmation = signal(false);
 
   readonly isDeactivating = signal(false)
-  readonly deactivateErrorMessage = signal("");
-
+  readonly isActivating = signal(false);
   readonly isDeleting = signal(false);
-  readonly deleteErrorMessage = signal("");
+  readonly dangerZoneErrorMessage = signal("");
+
+  readonly isFilterOpen = signal(false);
+  readonly roleFilter = signal<UserRole | "ALL">("ALL");
+  readonly statusFilter = signal<UserStatus | "ALL">("ALL");
 
   constructor() {
     this.loadUsers();
@@ -73,28 +77,35 @@ export class UserGovernance {
   }
 
   readonly filteredUsers = computed(() => {
-    const query = this.searchTerm().trim().toLowerCase();
-
-    if(!query) {
-      return this.users();
-    }
+    const search = this.searchTerm().trim().toLowerCase();
+    const role = this.roleFilter();
+    const status = this.statusFilter();
 
     return this.users().filter(user => {
-      const fullName = user.fullName?.toLowerCase() ?? "";
-      const email = user.email?.toLowerCase() ?? "";
-      const companyTRN = user.companyTRN?.toLowerCase() ?? "";
-      
-      return(
-        fullName.includes(query) ||
-        email.includes(query) ||
-        companyTRN.includes(query)
-      );
-    });
-  });
+      const matchesSearch = !search || 
+        user.fullName.toLowerCase().includes(search) ||
+        user.email.toLowerCase().includes(search) ||
+        user.companyTRN.toLowerCase().includes(search);
+
+      const matchesRole = role === "ALL" || user.role === role;
+      const matchesStatus =  status === "ALL" || user.status === status;
+
+      return matchesSearch && matchesRole && matchesStatus;
+    })
+  })
 
   updateSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.searchTerm.set(input.value);
+  }
+
+  toggleFilter(): void {
+    this.isFilterOpen.update(open => !open);
+  }
+
+  clearFilters(): void {
+    this.roleFilter.set("ALL");
+    this.statusFilter.set("ALL");
   }
 
   openUserDetails(user: UserResponse): void {
@@ -125,15 +136,13 @@ export class UserGovernance {
     this.isEditingShippingAgentName.set(false);
     this.isEditingRole.set(false);
     
-    this.showDeactivateConfirmation.set(false);
-    this.showDeleteConfirmation.set(false);
+    this.clearDangerZoneConfirmations();
   }
 
   closeUserDetails(): void {
     this.selectedUser.set(null);
-    this.showDeactivateConfirmation.set(false);
-    this.showDeleteConfirmation.set(false);
-    this.deactivateErrorMessage.set("");
+    this.clearDangerZoneConfirmations();
+    this.dangerZoneErrorMessage.set("");
   }
 
   readonly fullNameControl = new FormControl("", {
@@ -218,7 +227,16 @@ export class UserGovernance {
 
   cancelDeactivate(): void {
     this.showDeactivateConfirmation.set(false);
-    this.deactivateErrorMessage.set("");
+    this.dangerZoneErrorMessage.set("");
+  }
+
+  openActivateConfirmation(): void {
+    this.showActivateConfirmation.set(true);
+  }
+
+  cancelActivate(): void {
+    this.showActivateConfirmation.set(false);
+    this.dangerZoneErrorMessage.set("");
   }
 
   openDeleteConfirmation(): void {
@@ -227,6 +245,7 @@ export class UserGovernance {
 
   cancelDelete(): void {
     this.showDeleteConfirmation.set(false);
+    this.dangerZoneErrorMessage.set("");
   }
 
   cancelChanges(): void {
@@ -363,7 +382,7 @@ export class UserGovernance {
     }
 
     this.isDeactivating.set(true);
-    this.deactivateErrorMessage.set("");
+    this.dangerZoneErrorMessage.set("");
 
     this.userGovernanceService
       .deactivateUser(user.id)
@@ -384,14 +403,95 @@ export class UserGovernance {
             )
           );
 
-          this.showDeactivateConfirmation.set(false);
+          this.clearDangerZoneConfirmations();
           this.cancelChanges();
         },
 
         error: () => {
-          this.deactivateErrorMessage.set("We could not deactivate this account. Please try again.");
+          this.dangerZoneErrorMessage.set("We could not deactivate this account. Please try again.");
         }
       });
+  }
+
+  activateSelectedUser(): void {
+    const user = this.selectedUser();
+
+    if (!user || this.isActivating()) {
+      return;
+    }
+
+    this.isActivating.set(true);
+    this.dangerZoneErrorMessage.set("");
+
+    this.userGovernanceService.activateUser(user.id)
+      .pipe(
+        finalize(() => {
+          this.isActivating.set(false);
+        })
+      )
+      .subscribe({
+        next: updatedUser => {
+          this.selectedUser.set(updatedUser);
+
+          this.users.update(users => 
+            users.map(existingUser => 
+              existingUser.id === updatedUser.id
+              ? updatedUser
+              : existingUser
+            )
+          );
+
+          this.clearDangerZoneConfirmations();
+          this.cancelChanges();
+        },
+
+        error: () => {
+          this.dangerZoneErrorMessage.set("We could not activate this account. Please try again.")
+        }
+      })
+  }
+
+  deleteSelectedUser(): void {
+    const user = this.selectedUser();
+
+    if (!user || this.isDeleting()) {
+      return;
+    }
+
+    this.isDeleting.set(true);
+    this.dangerZoneErrorMessage.set("");
+
+    this.userGovernanceService.deleteUser(user.id)
+      .pipe(
+        finalize(() => {
+          this.isDeleting.set(false);
+        })
+      )
+      .subscribe({
+        next: updatedUser => {
+          this.selectedUser.set(updatedUser);
+
+          this.users.update(users => 
+            users.filter(existingUser => 
+              existingUser.id !== user.id
+            )
+          )
+
+          this.selectedUser.set(null);
+          this.clearDangerZoneConfirmations();
+          this.cancelChanges();
+        },
+        
+        error: () => {
+          this.dangerZoneErrorMessage.set("We could not delete this account. Please try again.");
+        }
+      })
+  }
+
+  clearDangerZoneConfirmations() {
+    this.showDeactivateConfirmation.set(false);
+    this.showActivateConfirmation.set(false);
+    this.showDeleteConfirmation.set(false);
   }
 
 }

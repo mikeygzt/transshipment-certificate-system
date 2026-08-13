@@ -50,4 +50,22 @@ export class UserGovernanceService {
         )
         )
     }
+
+    activateUser(userId: string): Observable<UserResponse> {
+        return this.authService.getCsrfToken().pipe(
+            switchMap(() => 
+                this.http.patch<UserResponse>(
+                    `/api/admin/users/${userId}/activate`, {}
+                ))
+        )
+    }
+
+    deleteUser(userId: string): Observable<UserResponse> {
+        return this.authService.getCsrfToken().pipe(
+            switchMap(() => 
+                this.http.delete<UserResponse>(
+                    `/api/admin/users/${userId}`, {}
+                ))
+        )
+    }
 }

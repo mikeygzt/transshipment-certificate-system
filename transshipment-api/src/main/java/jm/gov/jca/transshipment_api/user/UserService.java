@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import jm.gov.jca.transshipment_api.auth.verification.EmailVerificationRepository;
 import jm.gov.jca.transshipment_api.auth.verification.EmailVerificationService;
 import jm.gov.jca.transshipment_api.user.dto.AdminCreateUserRequest;
 import jm.gov.jca.transshipment_api.user.dto.AdminUpdateUserRequest;
@@ -25,17 +26,20 @@ import jm.gov.jca.transshipment_api.user.dto.UserResponse;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final EmailVerificationRepository emailVerificationRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
     private final SessionRegistry sessionRegistry;
 
     public UserService(
         UserRepository userRepository, 
+        EmailVerificationRepository emailVerificationRepository,
         PasswordEncoder passwordEncoder,
         EmailVerificationService emailVerificationService,
         SessionRegistry sessionRegistry
     ) {
         this.userRepository = userRepository;
+        this.emailVerificationRepository = emailVerificationRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailVerificationService = emailVerificationService;
         this.sessionRegistry = sessionRegistry;
@@ -112,12 +116,32 @@ public class UserService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse activateUser(UUID userId, Authentication authentication){
+        UserAccount user = userRepository
+            .findById(userId)
+            .orElseThrow(() -> 
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+            );
+        
+        if (user.getStatus() == Status.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "This account has already been activated"
+            );
+        }
+
+        user.setStatus(Status.ACTIVE);
+
+        return toResponse(userRepository.save(user));
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(UUID userId, Authentication authentication){
+
         UserAccount user = userRepository
         .findById(userId)
         .orElseThrow(() -> 
             new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
-            
         );
 
         if (user.getRole() == Role.ADMIN 
@@ -132,6 +156,7 @@ public class UserService {
                 "You cannot delete your own account.");
         }
 
+        emailVerificationRepository.deleteAllByUser(user);
         userRepository.delete(user);
     }
 

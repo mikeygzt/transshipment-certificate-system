@@ -46,7 +46,7 @@ public class UserAdminController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable UUID id, Authentication authentication) {
-        userService.deleteUser(id, authentication);
+         userService.deleteUser(id, authentication);
     }
 
     @PatchMapping("/{id}")
@@ -63,5 +63,13 @@ public class UserAdminController {
         Authentication authentication
     ) {
         return userService.deactivateUser(id, authentication);
+    }
+
+    @PatchMapping("/{id}/activate")
+    public UserResponse activateUser(
+        @PathVariable UUID id,
+        Authentication authentication
+    ) {
+        return userService.activateUser(id, authentication);
     }
 }
