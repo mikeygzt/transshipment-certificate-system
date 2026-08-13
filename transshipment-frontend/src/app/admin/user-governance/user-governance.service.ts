@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { Observable, switchMap } from "rxjs";
-import { UserResponse } from "../../auth.models";
+import { UserResponse, UserRole, UserStatus } from "../../auth.models";
 import { AuthService } from "../../auth/auth.service";
 
 @Injectable({
@@ -15,16 +15,57 @@ export class UserGovernanceService {
         return this.http.get<UserResponse[]>("/api/admin/users");
     }
 
-    updateUser(userId: string, fullName: string): Observable<UserResponse> {
+    updateUser(
+        userId: string, 
+        fullName: string,
+        email: string,
+        telephone: string,
+        companyTRN: string,
+        shippingAgentName: string,
+        role: UserRole
+    ): Observable<UserResponse> {
         return this.authService.getCsrfToken().pipe(
             switchMap(() => 
                 this.http.patch<UserResponse>(
                     `/api/admin/users/${userId}`,
                     {
-                        fullName
+                        fullName,
+                        email,
+                        telephone,
+                        companyTRN,
+                        shippingAgentName,
+                        role
                     }
                 )
             )
+        )
+    }
+
+    deactivateUser(userId: string): Observable<UserResponse> {
+        return this.authService.getCsrfToken().pipe(
+            switchMap(() => 
+                this.http.patch<UserResponse>(
+                    `/api/admin/users/${userId}/deactivate`, {}
+                )
+        )
+        )
+    }
+
+    activateUser(userId: string): Observable<UserResponse> {
+        return this.authService.getCsrfToken().pipe(
+            switchMap(() => 
+                this.http.patch<UserResponse>(
+                    `/api/admin/users/${userId}/activate`, {}
+                ))
+        )
+    }
+
+    deleteUser(userId: string): Observable<UserResponse> {
+        return this.authService.getCsrfToken().pipe(
+            switchMap(() => 
+                this.http.delete<UserResponse>(
+                    `/api/admin/users/${userId}`, {}
+                ))
         )
     }
 }

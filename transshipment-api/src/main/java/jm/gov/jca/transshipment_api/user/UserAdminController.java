@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -44,8 +45,8 @@ public class UserAdminController {
     
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable UUID id) {
-        userService.deleteUser(id);
+    public void deleteUser(@PathVariable UUID id, Authentication authentication) {
+         userService.deleteUser(id, authentication);
     }
 
     @PatchMapping("/{id}")
@@ -54,5 +55,21 @@ public class UserAdminController {
         @Valid @RequestBody AdminUpdateUserRequest request
     ) {
         return userService.updateUser(id, request);
+    }
+
+    @PatchMapping("/{id}/deactivate")
+    public UserResponse deactivateUser(
+        @PathVariable UUID id,
+        Authentication authentication
+    ) {
+        return userService.deactivateUser(id, authentication);
+    }
+
+    @PatchMapping("/{id}/activate")
+    public UserResponse activateUser(
+        @PathVariable UUID id,
+        Authentication authentication
+    ) {
+        return userService.activateUser(id, authentication);
     }
 }
