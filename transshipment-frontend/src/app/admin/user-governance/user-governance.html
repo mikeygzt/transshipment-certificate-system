@@ -137,7 +137,7 @@
                                 </td>
 
                                 <td>
-                                    {{ user.createdAt }}
+                                    {{ user.createdAt | date:"dd/MM/yyyy"}}
                                 </td>
                             </tr>
                         } @empty {

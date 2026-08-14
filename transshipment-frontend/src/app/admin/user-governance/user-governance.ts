@@ -5,12 +5,14 @@ import { UserResponse, UserRole, UserStatus } from '../../auth.models';
 import { finalize } from 'rxjs';
 import { LucideListFilter, LucideSearch, LucideSquarePen, LucideTriangleAlert, LucideX } from '@lucide/angular';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-user-governance',
   imports: [
     DashboardLayout,
-    ReactiveFormsModule, 
+    ReactiveFormsModule,
+    DatePipe, 
     LucideSearch, 
     LucideListFilter,
     LucideX,
