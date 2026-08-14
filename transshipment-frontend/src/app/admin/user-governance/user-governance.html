@@ -23,24 +23,65 @@
                     (input)="updateSearch($event)"
                 />
             </label>
-
-            <button type="button" class="filter-button">
-                <svg
-                    lucideListFilter
-                    class="button-icon"
-                    aria-hidden="true"
-                ></svg>
-
-                <span>Filter</span>
-            </button>
+            
+            <div class="filter-wrapper">
+                <button 
+                    type="button" 
+                    class="filter-button"
+                    (click)="toggleFilter()">
+                    <svg
+                        lucideListFilter
+                        class="button-icon"
+                        aria-hidden="true"
+                    ></svg>
+    
+                    <span>Filter</span>
+                </button>
+    
+                @if(isFilterOpen()) {
+                    <div class="filter-menu">
+                        <div class="filter-field">
+                            <label for="roleField">Role</label>
+    
+                            <select
+                                id="roleFilter"
+                                [value]="roleFilter()"
+                                (change)="roleFilter.set($any($event.target).value)"
+                            >
+                                <option value="ALL">All roles</option>
+                                <option value="ADMIN">Admin</option>
+                                <option value="REVIEWER">Reviewer</option>
+                                <option value="REQUESTER">Requester</option>
+                            </select>
+                        </div>
+    
+                        <div class="filter-field">
+                            <label for="statusFilter">Status</label>
+    
+                            <select
+                                id="statusFilter"
+                                [value]="statusFilter()"
+                                (change)="statusFilter.set($any($event.target).value)"
+                            >
+                                <option value="ALL">All statuses</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="DEACTIVATED">Deactivated</option>
+                                <option value="PENDING_CONFIRMATION">Pending Confirmation</option>
+                            </select>
+                        </div>
+    
+                        <button type="button" class="clear-filter-button" (click)="clearFilters()">Clear</button>
+                    </div>
+                }
+            </div>
         </div>
 
         @if (isLoading()) {
             <div class="page-state">
-                <p>Laoding user accounts...</p>
+                <p>Loading user accounts...</p>
             </div>
         } @else if (errorMessage()) {
-            <div class="page-state error-stte">
+            <div class="page-state error-state">
                 <p>{{ errorMessage() }}</p>
             </div>
         } @else {
@@ -96,7 +137,7 @@
                                 </td>
 
                                 <td>
-                                    {{ user.createdAt }}
+                                    {{ user.createdAt | date:"dd/MM/yyyy"}}
                                 </td>
                             </tr>
                         } @empty {
@@ -191,24 +232,148 @@
                                 </dd>
                             </div>
 
-                            <div class="detail-item">
-                                <dt>Email address</dt>
-                                <dd>{{ user.email }}</dd>
+                            <div class="detail-item editable-detail">
+                                <dt>Email</dt>
+                                <dd>
+                                    @if (isEditingEmail()) {
+                                        <div class="edit-field">
+                                            <input 
+                                                type="text"
+                                                [formControl]="emailControl"
+                                                aria-label="Email"
+                                            />
+
+                                            @if (emailControl.touched && emailControl.invalid) {
+                                                <small class="field-error">
+                                                    Please enter a valid email address.
+                                                </small>
+                                            }
+                                        </div>
+                                    } @else {
+                                        <span>{{ user.email }}</span>
+                                    }
+
+                                    <button
+                                        type="button"
+                                        class="edit-button"
+                                        aria-label="Edit email"
+                                        (click)="editEmail()"
+                                    >
+                                        <svg
+                                            lucideSquarePen
+                                            aria-hidden="true"
+                                        ></svg>
+
+                                    </button>
+                                </dd>
                             </div>
 
-                            <div class="detail-item">
+                            <div class="detail-item editable-detail">
                                 <dt>Telephone</dt>
-                                <dd>{{ user.telephone || "Not provided" }}</dd>
+                                <dd>
+                                    @if (isEditingTelephone()) {
+                                        <div class="edit-field">
+                                            <input 
+                                                type="text"
+                                                [formControl]="telephoneControl"
+                                                aria-label="Telephone"
+                                            />
+
+                                            @if (telephoneControl.touched && telephoneControl.invalid) {
+                                                <small class="field-error">
+                                                    Please enter a valid 10-digit telephone number.
+                                                </small>
+                                            }
+                                        </div>
+                                    } @else {
+                                        <span>{{ user.telephone }}</span>
+                                    }
+
+                                    <button
+                                        type="button"
+                                        class="edit-button"
+                                        aria-label="Edit telephone"
+                                        (click)="editTelephone()"
+                                    >
+                                        <svg
+                                            lucideSquarePen
+                                            aria-hidden="true"
+                                        ></svg>
+
+                                    </button>
+                                </dd>
                             </div>
 
-                            <div class="detail-item">
+                            <div class="detail-item editable-detail">
                                 <dt>Company TRN</dt>
-                                <dd>{{ user.companyTRN || "Not provided" }}</dd>
+                                <dd>
+                                    @if (isEditingCompanyTRN()) {
+                                        <div class="edit-field">
+                                            <input 
+                                                type="text"
+                                                [formControl]="companyTRNControl"
+                                                aria-label="Company TRN"
+                                            />
+
+                                            @if (companyTRNControl.touched && companyTRNControl.invalid) {
+                                                <small class="field-error">
+                                                    This field must contain exactly 13 digits.
+                                                </small>
+                                            }
+                                        </div>
+                                    } @else {
+                                        <span>{{ user.companyTRN }}</span>
+                                    }
+
+                                    <button
+                                        type="button"
+                                        class="edit-button"
+                                        aria-label="Edit company TRN"
+                                        (click)="editCompanyTRN()"
+                                    >
+                                        <svg
+                                            lucideSquarePen
+                                            aria-hidden="true"
+                                        ></svg>
+
+                                    </button>
+                                </dd>
                             </div>
 
-                            <div class="detail-item">
-                                <dt>Shipping Agent</dt>
-                                <dd>{{ user.shippingAgentName || "Not provided" }}</dd>
+                            <div class="detail-item editable-detail">
+                                <dt>Shipping Agent Name</dt>
+                                <dd>
+                                    @if (isEditingShippingAgentName()) {
+                                        <div class="edit-field">
+                                            <input 
+                                                type="text"
+                                                [formControl]="shippingAgentNameControl"
+                                                aria-label="Shipping Agent Name"
+                                            />
+
+                                            @if (shippingAgentNameControl.touched && shippingAgentNameControl.invalid) {
+                                                <small class="field-error">
+                                                    Please enter a valid Shipping Agent name.
+                                                </small>
+                                            }
+                                        </div>
+                                    } @else {
+                                        <span>{{ user.shippingAgentName }}</span>
+                                    }
+
+                                    <button
+                                        type="button"
+                                        class="edit-button"
+                                        aria-label="Edit shipping agent name"
+                                        (click)="editShippingAgentName()"
+                                    >
+                                        <svg
+                                            lucideSquarePen
+                                            aria-hidden="true"
+                                        ></svg>
+
+                                    </button>
+                                </dd>
                             </div>
                         </dl>
                     </section>
@@ -217,23 +382,52 @@
                         <h3>Account information</h3>
 
                         <dl class="details-list">
-                            <div class="detail-item">
+                            <div class="detail-item editable-detail">
                                 <dt>Role</dt>
-                                <dd>{{ user.role }}</dd>
+
+                                <dd>
+                                    @if (isEditingRole()) {
+                                        <div class="edit-field">
+                                            <select [formControl]="roleControl" aria-label="User role">
+                                                <option value="REQUESTER">Requester</option>
+                                                <option value="REVIEWER">Reviewer</option>
+                                                <option value="ADMIN">Admin</option>
+                                            </select>
+                                        </div>
+                                    } @else {
+                                        <span>
+                                            {{
+                                                user.role === "REQUESTER" ?
+                                                "Requester" : 
+                                                user.role === "REVIEWER" ?
+                                                "Reviewer" : "Admin"
+                                            }}
+                                        </span>
+                                    }
+
+                                    <button 
+                                        type="button" 
+                                        class="edit-button"
+                                        aria-label="Edit user role"
+                                        (click)="editRole()"
+                                    >
+                                        <svg
+                                            lucideSquarePen
+                                            aria-hidden="true"
+                                        ></svg>
+                                    </button>
+                                </dd>
                             </div>
 
                             <div class="detail-item">
                                 <dt>Status</dt>
-                                <dd>
-                                    <span
-                                        class="status-badge"
-                                        [class.active-status]="user.status === 'ACTIVE'"
-                                        [class.pending-status]="user.status === 'PENDING_CONFIRMATION'"
-                                        [class.deactivated-status]="user.status === 'DEACTIVATED'"
-                                    >
-                                        {{ user.status === "PENDING_CONFIRMATION" ? "Pending" : user.status }}
-                                    </span>
-                                </dd>
+                                <dd>{{
+                                        user.status === "ACTIVE" ?
+                                        "Active" : 
+                                        user.status === "PENDING_CONFIRMATION" ?
+                                        "Pending Confirmation" :
+                                        "Deactivated"
+                                    }}</dd>
                             </div>
 
                             <div class="detail-item">
@@ -242,6 +436,40 @@
                             </div>
 
                         </dl>
+                    </section>
+
+                    <section class="danger-section">
+                        <div class="danger-heading">
+                            <svg
+                                lucideTriangleAlert
+                                aria-hidden="true"
+                            ></svg>
+        
+                            <h3>Danger zone</h3>
+                        </div>
+
+                        @if (user.status !== "ACTIVE") {
+                            <button
+                                type="button"
+                                class="activate-button"
+                                (click)="openActivateConfirmation()">
+                                Activate account
+                            </button>
+                        } @else {
+                            <button
+                                type="button"
+                                class="deactivate-button"
+                                (click)="openDeactivateConfirmation()">
+                                Deactivate account
+                            </button>
+                        }
+
+                        <button
+                            type="button"
+                            class="delete-button"
+                            (click)="openDeleteConfirmation()">
+                            Delete account
+                        </button>
                     </section>
                 </div>
 
@@ -265,10 +493,101 @@
                             <button
                                 type="button"
                                 class="save-button"
-                                [disabled]="fullNameControl.invalid"
+                                [disabled]="
+                                fullNameControl.invalid || 
+                                telephoneControl.invalid ||
+                                companyTRNControl.invalid ||
+                                shippingAgentNameControl.invalid ||
+                                roleControl.invalid ||
+                                isSaving()"
                                 (click)="saveChanges()"
                             >
                                 {{ isSaving() ? "Saving..." : "Save changes" }}
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                @if (dangerZoneErrorMessage()) {
+                    <p class="danger-zone-error">
+                        {{ dangerZoneErrorMessage() }}
+                    </p>
+                }
+
+                @if (showDeactivateConfirmation()) {
+                    <div class="danger-zone-confirmation">
+                        <div>
+                            <strong class="deactivate-confirmation-strong">Deactivate this account</strong>
+
+                            <p>{{ user.fullName }} will no longer be able to sign in.</p>
+                        </div>
+
+                        <div class="confirmation-actions">
+                            <button
+                                type="button"
+                                class="cancel-button"
+                                (click)="cancelDeactivate()">
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                class="confirm-deactivate-button"
+                                [disabled]="isDeactivating()"
+                                (click)="deactivateSelectedUser()">
+                                {{ isDeactivating() ? "Deactivating..." : "Deactivate" }}
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                @if (showActivateConfirmation()) {
+                      <div class="danger-zone-confirmation danger-zone-confirmation-active">
+                        <div>
+                            <strong class="activate-confirmation-strong">Activate this account</strong>
+
+                            <p>{{ user.fullName }}'s account will be activated.</p>
+                        </div>
+
+                        <div class="confirmation-actions">
+                            <button
+                                type="button"
+                                class="cancel-button"
+                                (click)="cancelActivate()">
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                class="confirm-activate-button"
+                                (click)="activateSelectedUser()">
+                                {{ isActivating() ? "Activating..." : "Activate" }}
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                @if (showDeleteConfirmation()) {
+                      <div class="danger-zone-confirmation">
+                        <div>
+                            <strong class="deactivate-confirmation-strong">Delete this account</strong>
+
+                            <p>{{ user.fullName }}'s account will be permanently deleted.</p>
+                        </div>
+
+                        <div class="confirmation-actions">
+                            <button
+                                type="button"
+                                class="cancel-button"
+                                (click)="cancelDelete()">
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                class="confirm-deactivate-button"
+                                (click)="deleteSelectedUser()">
+                                {{ isDeleting() ? "Deleting..." : "Delete"}}
                             </button>
                         </div>
                     </div>
