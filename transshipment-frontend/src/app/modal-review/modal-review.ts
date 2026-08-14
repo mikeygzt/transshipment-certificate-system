@@ -16,10 +16,10 @@ export class ModalReview {
   private readonly formbuilder = inject(FormBuilder);
   private readonly requestService = inject(RequestService);
   private readonly changeDetector = inject(ChangeDetectorRef);
-  private readonly existingRequest = inject<TransshipmentResponse>(DIALOG_DATA);
+  private readonly dialogData = inject<TransshipmentResponse>(DIALOG_DATA);
   private readonly dialogRef = inject(DialogRef<TransshipmentResponse, ModalReview>);
 
-  readonly request = this.existingRequest;
+  private existingRequest = this.dialogData;
 
   isSubmitting = false;
   errorMessage = "";
@@ -28,6 +28,27 @@ export class ModalReview {
     decision: ["", [Validators.required]],
     reviewComments: [""]
   });
+
+  constructor() {
+    if (this.existingRequest.status !== 'UNDER_REVIEW') {
+      const underReviewRequest = this.toTransshipmentrequest(this.existingRequest, 'UNDER_REVIEW');
+
+      this.requestService.update(this.existingRequest.requestId, underReviewRequest).subscribe({
+        next: () => {
+          this.existingRequest = { ...this.existingRequest, status: 'UNDER_REVIEW' };
+          this.changeDetector.markForCheck();
+        },
+        error: () => {
+          this.errorMessage = "Could not mark this request as under review.";
+          this.changeDetector.markForCheck();
+        }
+      });
+    }
+  }
+
+  get request(): TransshipmentResponse {
+    return this.existingRequest;
+  }
 
   get isRejectSelected(): boolean {
     return this.decisionForm.controls.decision.value === 'REJECTED';
@@ -55,44 +76,33 @@ export class ModalReview {
     }
   }
 
-  submit(): void {
-    if (this.decisionForm.invalid || this.isSubmitting) {
-      this.decisionForm.markAllAsTouched();
-      return;
-    }
-
-    this.isSubmitting = true;
-    this.errorMessage = "";
-
-    const formValue = this.decisionForm.getRawValue();
-    const decidedStatus = formValue.decision as RequestStatus;
-
-    const request: Transshipmentrequest = {
-      requestId: this.existingRequest.requestId,
-      requesterUserId: this.existingRequest.requesterUserId,
-      shippingAgentName: this.existingRequest.shippingAgentName,
-      agentCodeJca: this.existingRequest.agentCodeJca,
-      trn: this.existingRequest.trn,
-      applicantName: this.existingRequest.applicantName,
-      emailAddress: this.existingRequest.emailAddress,
-      phoneNumber: this.existingRequest.phoneNumber,
-      requestType: this.existingRequest.requestType,
-      portTerminal: this.existingRequest.portTerminal,
-      purposeOfCertificate: this.existingRequest.purposeOfCertificate,
-      inboundVoyageNo: this.existingRequest.inboundVoyageNo,
-      inboundVesselName: this.existingRequest.inboundVesselName,
-      dateOfArrival: this.existingRequest.dateOfArrival,
-      outboundVoyageNumber: this.existingRequest.outboundVoyageNumber,
-      outboundVesselName: this.existingRequest.outboundVesselName,
-      expectedDepartureDate: this.existingRequest.expectedDepartureDate,
-      manifestNumber: this.existingRequest.manifestNumber,
-      billOfLadingWaybill: this.existingRequest.billOfLadingWaybill,
-      rotationCallReference: this.existingRequest.rotationCallReference,
-      remarksInstructions: this.existingRequest.remarksInstructions,
-      status: decidedStatus,
-      reviewComments: formValue.reviewComments,
-      pdfCertificatePath: this.existingRequest.pdfCertificatePath,
-      containers: this.existingRequest.containers.map(c => ({
+  private toTransshipmentrequest(source: TransshipmentResponse, status: RequestStatus): Transshipmentrequest {
+    return {
+      requestId: source.requestId,
+      requesterUserId: source.requesterUserId,
+      shippingAgentName: source.shippingAgentName,
+      agentCodeJca: source.agentCodeJca,
+      trn: source.trn,
+      applicantName: source.applicantName,
+      emailAddress: source.emailAddress,
+      phoneNumber: source.phoneNumber,
+      requestType: source.requestType,
+      portTerminal: source.portTerminal,
+      purposeOfCertificate: source.purposeOfCertificate,
+      inboundVoyageNo: source.inboundVoyageNo,
+      inboundVesselName: source.inboundVesselName,
+      dateOfArrival: source.dateOfArrival,
+      outboundVoyageNumber: source.outboundVoyageNumber,
+      outboundVesselName: source.outboundVesselName,
+      expectedDepartureDate: source.expectedDepartureDate,
+      manifestNumber: source.manifestNumber,
+      billOfLadingWaybill: source.billOfLadingWaybill,
+      rotationCallReference: source.rotationCallReference,
+      remarksInstructions: source.remarksInstructions,
+      status: status,
+      reviewComments: source.reviewComments,
+      pdfCertificatePath: source.pdfCertificatePath,
+      containers: source.containers.map(c => ({
         containerId: c.containerId,
         requestId: c.requestId,
         containerNumber: c.containerNumber,
@@ -106,6 +116,22 @@ export class ModalReview {
         finalDestination: c.finalDestination
       }))
     };
+  }
+
+  submit(): void {
+    if (this.decisionForm.invalid || this.isSubmitting) {
+      this.decisionForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.errorMessage = "";
+
+    const formValue = this.decisionForm.getRawValue();
+    const decidedStatus = formValue.decision as RequestStatus;
+
+    const request = this.toTransshipmentrequest(this.existingRequest, decidedStatus);
+    request.reviewComments = formValue.reviewComments;
 
     this.requestService.update(this.existingRequest.requestId, request)
       .pipe(

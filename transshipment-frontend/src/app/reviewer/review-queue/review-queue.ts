@@ -12,6 +12,8 @@ import { finalize } from 'rxjs';
 import { Dialog } from '@angular/cdk/dialog';
 import { ModalReview } from '../../modal-review/modal-review';
 
+type ReviewQueueStatusFilter = 'ALL' | 'SUBMITTED' | 'UNDER_REVIEW' | 'RESUBMITTED';
+
 @Component({
   selector: 'app-review-queue',
   imports: [DashboardLayout, ReactiveFormsModule, LucideListFilter, LucideSearch, LucidePlus, LucideX],
@@ -34,6 +36,15 @@ export class ReviewQueue {
   errorMessage ="";
   successMessage ="";
 
+  readonly isFilterOpen = signal(false);
+  readonly statusFilter = signal<ReviewQueueStatusFilter>("ALL");
+  readonly dateFrom = signal("");
+  readonly dateTo = signal("");
+
+  constructor() {
+    this.loadRequests();
+  }
+
   private loadRequests(): void{
     this.requestService.getAll().pipe(
         finalize(() => {
@@ -51,41 +62,31 @@ export class ReviewQueue {
       })
   }
 
-  constructor() {
-  this.loadRequests();
-} 
-
   updateSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.search.set(input.value);
   }
 
+  toggleFilter(): void {
+    this.isFilterOpen.update(open => !open);
+  }
+
+  clearFilters(): void {
+    this.statusFilter.set("ALL");
+    this.dateFrom.set("");
+    this.dateTo.set("");
+  }
+
   openRequestDetails(request: TransshipmentResponse): void {
     this.selectedRequest.set(request);
-
-    if (request.status === 'SUBMITTED' || request.status === 'RESUBMITTED') {
-      const updatedRequest = this.toUpdateRequest(request, 'UNDER_REVIEW');
-
-      this.requestService.update(request.requestId, updatedRequest).subscribe({
-        next: () => {
-          const refreshedRequest: TransshipmentResponse = { ...request, status: 'UNDER_REVIEW' };
-          this.selectedRequest.set(refreshedRequest);
-          this.requests.update(current =>
-            current.map(r => r.requestId === refreshedRequest.requestId ? refreshedRequest : r)
-          );
-        },
-        error: () => {
-          this.errorMessage = "Could not mark this request as under review.";
-        }
-      });
-    }
   }
 
   closeRequestDetails(): void {
     this.selectedRequest.set(null);
   }
 
-  //Opens the read-only review modal for the currently selected request, with the accept/reject decision panel
+  //Opens the read-only review modal for the currently selected request, with the accept/reject decision panel.
+  //Note: ModalReview itself marks the request UNDER_REVIEW on open, so no status change happens here.
   openReviewModal(request: TransshipmentResponse): void {
     const dialogRef = this.dialog.open<TransshipmentResponse | undefined>(ModalReview, {
       data: request
@@ -101,68 +102,65 @@ export class ReviewQueue {
     });
   }
 
-  private toUpdateRequest(request: TransshipmentResponse, status: RequestStatus): Transshipmentrequest {
-    return {
-      requestId: request.requestId,
-      requesterUserId: request.requesterUserId,
-      shippingAgentName: request.shippingAgentName,
-      agentCodeJca: request.agentCodeJca,
-      trn: request.trn,
-      applicantName: request.applicantName,
-      emailAddress: request.emailAddress,
-      phoneNumber: request.phoneNumber,
-      requestType: request.requestType,
-      portTerminal: request.portTerminal,
-      purposeOfCertificate: request.purposeOfCertificate,
-      inboundVoyageNo: request.inboundVoyageNo,
-      inboundVesselName: request.inboundVesselName,
-      dateOfArrival: request.dateOfArrival,
-      outboundVoyageNumber: request.outboundVoyageNumber,
-      outboundVesselName: request.outboundVesselName,
-      expectedDepartureDate: request.expectedDepartureDate,
-      manifestNumber: request.manifestNumber,
-      billOfLadingWaybill: request.billOfLadingWaybill,
-      rotationCallReference: request.rotationCallReference,
-      remarksInstructions: request.remarksInstructions,
-      status: status,
-      reviewComments: request.reviewComments,
-      pdfCertificatePath: request.pdfCertificatePath,
-      containers: request.containers.map(container => ({
-        containerId: container.containerId,
-        requestId: container.requestId,
-        containerNumber: container.containerNumber,
-        sealNumber: container.sealNumber,
-        sizeType: container.sizeType,
-        cargoDescription: container.cargoDescription,
-        packages: container.packages,
-        grossWeightKg: container.grossWeightKg,
-        yardLocation: container.yardLocation,
-        origin: container.origin,
-        finalDestination: container.finalDestination
-      }))
-    };
+  //Formats an ISO timestamp as DD, MM, YYYY HH:MM
+  formatCreatedAt(createdAt: string): string {
+    const date = new Date(createdAt);
+
+    if (isNaN(date.getTime())) {
+      return createdAt;
+    }
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return `${day}/${month}/${year}`;
   }
 
   readonly filteredRequests = computed(() => {
     const query = this.search().trim().toLowerCase();
-
-    if (!query) {
-      return this.requests();
-    }
+    const status = this.statusFilter();
+    const fromDate = this.dateFrom();
+    const toDate = this.dateTo();
 
     return this.requests().filter(request => {
-      const creationDate = request.createdAt ?? "";
-      const status = this.getStatusLabel(request.status).toLowerCase();
-      const manifestNo = request.manifestNumber ?? "";
-      const billofLading = request.billOfLadingWaybill ?? "";
-      const requestType = request.requestType ?? "";
+      const matchesStatus = status === "ALL" || request.status === status;
 
+      if (!matchesStatus) {
+        return false;
+      }
+
+      const createdDate = request.createdAt ? new Date(request.createdAt) : null;
+
+      if (fromDate && createdDate) {
+        const from = new Date(fromDate);
+        if (createdDate < from) {
+          return false;
+        }
+      }
+
+      if (toDate && createdDate) {
+        const to = new Date(toDate);
+        to.setHours(23, 59, 59, 999);
+        if (createdDate > to) {
+          return false;
+        }
+      }
+
+      if (!query) {
+        return true;
+      }
+
+      const portTerminal = request.portTerminal ?? "";
+      const shippingAgentName = request.shippingAgentName ?? "";
+      const manifestNo = request.manifestNumber ?? "";
 
       return (
-        creationDate.toLowerCase().includes(query) ||
-        status.includes(query)|| manifestNo.toLowerCase().includes(query)||
-        billofLading.toLowerCase().includes(query)||
-        requestType.toLowerCase().includes(query)
+        portTerminal.toLowerCase().includes(query) ||
+        shippingAgentName.toLowerCase().includes(query) ||
+        manifestNo.toLowerCase().includes(query)
       );
     });
   }

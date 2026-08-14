@@ -38,7 +38,11 @@
 
             >
 
-            <button type="button" class="filter-button">
+            <div class="filter-wrapper">
+                <button 
+                    type="button" 
+                    class="filter-button"
+                    (click)="toggleFilter()">
                     <svg
                         lucideListFilter
                         class="button-icon"
@@ -46,7 +50,31 @@
                     ></svg>
 
                     <span>Filter</span>
-            </button>
+                </button>
+
+                @if (isFilterOpen()) {
+                    <div class="filter-menu">
+                        <div class="filter-field">
+                            <label for="statusFilter">Request Status</label>
+
+                            <select
+                                id="statusFilter"
+                                [value]="statusFilter()"
+                                (change)="statusFilter.set($any($event.target).value)"
+                            >
+                                <option value="ALL">All statuses</option>
+                                <option value="SUBMITTED">Submitted</option>
+                                <option value="UNDER_REVIEW">Under Review</option>
+                                <option value="APPROVED">Approved</option>
+                                <option value="REJECTED">Rejected</option>
+                                <option value="RESUBMITTED">Resubmitted</option>
+                            </select>
+                        </div>
+
+                        <button type="button" class="clear-filter-button" (click)="clearFilters()">Clear</button>
+                    </div>
+                }
+            </div>
 
             <button type="button" class="new-request-table" (click)="openCreateRequestModal()">
                 <svg
@@ -70,6 +98,7 @@
                     <th scope="col">Manifest Number</th>
                     <th scope="col">Bill of Lading</th>
                     <th scope="col">Status</th>
+                    <th scope="col"></th>
                 </tr>
             </thead>
 
@@ -80,7 +109,7 @@
                         (click)="openRequestDetails(request)"
                     >
                         <td>
-                            {{ request.createdAt }}
+                            {{ formatCreatedAt(request.createdAt) }}
                         </td>
                         <td>
                             <span class="request-type-label">
@@ -105,10 +134,24 @@
                                 {{ getStatusLabel(request.status) }}
                             </span>
                         </td>
+                        <td>
+                            <button
+                                type="button"
+                                class="delete-request-button"
+                                (click)="openDeleteConfirmation($event, request)"
+                            >
+                                <svg
+                                    lucideTrash
+                                    class="button-icon"
+                                    aria-hidden="true"
+                                ></svg>
+                                <span>Delete Request?</span>
+                            </button>
+                        </td>
                     </tr>
                 } @empty {
                     <tr>
-                        <td colspan="5" class="empty-result">No requests match your search.</td>
+                        <td colspan="6" class="empty-result">No requests match your search.</td>
                     </tr>
                 }
             </tbody>
@@ -319,6 +362,37 @@
     </div>
 }
 
+@if (showDeleteConfirmation() && requestPendingDelete(); as request) {
+    <div class="drawer-backdrop delete-confirmation-backdrop" (click)="cancelDelete()">
+        <div class="delete-confirmation-modal" (click)="$event.stopPropagation()">
+            <p class="delete-confirmation-text">Are you sure you want to delete this request?</p>
+
+            @if (deleteErrorMessage()) {
+                <p class="form-error">{{ deleteErrorMessage() }}</p>
+            }
+
+            <div class="delete-confirmation-actions">
+                <button
+                    type="button"
+                    class="save-button"
+                    [disabled]="isDeleting()"
+                    (click)="cancelDelete()"
+                >
+                    <span>Cancel</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="primary-button delete-confirm-button"
+                    [disabled]="isDeleting()"
+                    (click)="confirmDelete()"
+                >
+                    <span>{{ isDeleting() ? "Deleting..." : "Delete" }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 
     

@@ -7,7 +7,7 @@ import { TransshipmentResponse, RequestStatus } from '../../transhipmentrequest.
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
 import { AuthenticatedUser } from '../../auth.models';
-import { LucideListFilter, LucidePlus, LucideSearch, LucideX } from '@lucide/angular';
+import { LucideListFilter, LucidePlus, LucideSearch, LucideTrash, LucideX } from '@lucide/angular';
 import { finalize } from 'rxjs';
 import { Dialog } from '@angular/cdk/dialog';
 import { Modal } from '../../modal/modal';
@@ -16,7 +16,7 @@ import { Modaledit } from '../../modaledit/modaledit';
 
 @Component({
   selector: 'app-my-applications',
-  imports: [DashboardLayout, ReactiveFormsModule, LucideListFilter, LucideSearch, LucidePlus, LucideX],
+  imports: [DashboardLayout, ReactiveFormsModule, LucideListFilter, LucideSearch, LucidePlus, LucideX, LucideTrash],
   templateUrl: './my-applications.html',
   styleUrl: './my-applications.css',
 })
@@ -43,6 +43,14 @@ export class MyApplications {
   phoneNumber = "";
   errorMessage ="";
   successMessage ="";
+
+  readonly isFilterOpen = signal(false);
+  readonly statusFilter = signal<RequestStatus | "ALL">("ALL");
+
+  readonly requestPendingDelete = signal<TransshipmentResponse | null>(null);
+  readonly showDeleteConfirmation = signal(false);
+  readonly isDeleting = signal(false);
+  readonly deleteErrorMessage = signal("");
 
 //Collect ID of the current USER to use for later methods
   constructor(){
@@ -79,6 +87,14 @@ export class MyApplications {
   updateSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.search.set(input.value);
+  }
+
+  toggleFilter(): void {
+    this.isFilterOpen.update(open => !open);
+  }
+
+  clearFilters(): void {
+    this.statusFilter.set("ALL");
   }
 
   openRequestDetails(request: TransshipmentResponse): void {
@@ -126,26 +142,95 @@ export class MyApplications {
     });
   }
 
+  //Opens the delete confirmation for a given request (called from the table's delete button)
+  openDeleteConfirmation(event: Event, request: TransshipmentResponse): void {
+    event.stopPropagation();
+    this.requestPendingDelete.set(request);
+    this.showDeleteConfirmation.set(true);
+    this.deleteErrorMessage.set("");
+  }
+
+  cancelDelete(): void {
+    this.requestPendingDelete.set(null);
+    this.showDeleteConfirmation.set(false);
+    this.deleteErrorMessage.set("");
+  }
+
+  confirmDelete(): void {
+    const request = this.requestPendingDelete();
+
+    if (!request || this.isDeleting()) {
+      return;
+    }
+
+    this.isDeleting.set(true);
+    this.deleteErrorMessage.set("");
+
+    this.requestService.delete(request.requestId)
+      .pipe(
+        finalize(() => {
+          this.isDeleting.set(false);
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.requests.update(current => current.filter(r => r.requestId !== request.requestId));
+
+          if (this.selectedRequest()?.requestId === request.requestId) {
+            this.closeRequestDetails();
+          }
+
+          this.requestPendingDelete.set(null);
+          this.showDeleteConfirmation.set(false);
+        },
+        error: () => {
+          this.deleteErrorMessage.set("We could not delete this request. Please try again.");
+        }
+      });
+  }
+
+  //Formats an ISO timestamp as DD, MM, YYYY HH:MM
+  formatCreatedAt(createdAt: string): string {
+    const date = new Date(createdAt);
+
+    if (isNaN(date.getTime())) {
+      return createdAt;
+    }
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return `${day}/${month}/${year}`;
+  }
+
 
   readonly filteredRequests = computed(() => {
     const query = this.search().trim().toLowerCase();
+    const status = this.statusFilter();
 
-    //if no query load the table normally
-    if (!query) {
-      return this.requests();
-    }
-    //filter based on the table
     return this.requests().filter(request => {
+      const matchesStatus = status === "ALL" || request.status === status;
+
+      if (!matchesStatus) {
+        return false;
+      }
+
+      if (!query) {
+        return true;
+      }
+
       const creationDate = request.createdAt ?? "";
-      const status = this.getStatusLabel(request.status).toLowerCase();
+      const statusLabel = this.getStatusLabel(request.status).toLowerCase();
       const manifestNo = request.manifestNumber ?? "";
       const billofLading = request.billOfLadingWaybill ?? "";
       const requestType = request.requestType ?? "";
 
-
       return (
         creationDate.toLowerCase().includes(query) ||
-        status.includes(query)|| manifestNo.toLowerCase().includes(query)||
+        statusLabel.includes(query) || manifestNo.toLowerCase().includes(query)||
         billofLading.toLowerCase().includes(query)||
         requestType.toLowerCase().includes(query)
       );

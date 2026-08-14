@@ -22,13 +22,17 @@
 
             <input 
             type="search"
-            placeholder="Search by Creation Date, Manifest Number, or Bill of Lading"
+            placeholder="Search by Port/Terminal, Shipping Agent, or Manifest Number"
             aria-label = "Search requests"
             (input)="updateSearch($event)"
 
             >
 
-            <button type="button" class="filter-button">
+            <div class="filter-wrapper">
+                <button
+                    type="button"
+                    class="filter-button"
+                    (click)="toggleFilter()">
                     <svg
                         lucideListFilter
                         class="button-icon"
@@ -36,8 +40,53 @@
                     ></svg>
 
                     <span>Filter</span>
-            </button>
+                </button>
 
+                @if (isFilterOpen()) {
+                    <div class="filter-menu">
+                        <div class="filter-field">
+                            <label for="statusFilter">Status</label>
+
+                            <select
+                                id="statusFilter"
+                                [value]="statusFilter()"
+                                (change)="statusFilter.set($any($event.target).value)"
+                            >
+                                <option value="ALL">All statuses</option>
+                                <option value="SUBMITTED">Submitted</option>
+                                <option value="UNDER_REVIEW">Under Review</option>
+                                <option value="RESUBMITTED">Resubmitted</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-field">
+                            <label for="dateFrom">Created from</label>
+
+                            <input
+                                id="dateFrom"
+                                type="date"
+                                [value]="dateFrom()"
+                                (change)="dateFrom.set($any($event.target).value)"
+                            >
+                        </div>
+
+                        <div class="filter-field">
+                            <label for="dateTo">Created to</label>
+
+                            <input
+                                id="dateTo"
+                                type="date"
+                                [value]="dateTo()"
+                                (change)="dateTo.set($any($event.target).value)"
+                            >
+                        </div>
+
+                        <div class="filter-actions">
+                            <button type="button" class="clear-filter-button" (click)="clearFilters()">Clear</button>
+                        </div>
+                    </div>
+                }
+            </div>
 
         </label>
         </div>
@@ -61,7 +110,7 @@
                         (click)="openRequestDetails(request)"
                     >
                         <td>
-                            {{ request.createdAt }}
+                            {{ formatCreatedAt(request.createdAt) }}
                         </td>
                         <td>
                             <span class="request-type-label">
@@ -230,7 +279,7 @@
 
                         <div class="detail-item">
                             <dt>Created</dt>
-                            <dd>{{ request.createdAt }}</dd>
+                            <dd>{{ formatCreatedAt(request.createdAt) }}</dd>
                         </div>
                     </dl>
                 </section>
@@ -265,7 +314,7 @@
             </div>
 
                 <div class="drawer-change-bar">
-                    <span>This request is under review.</span>
+                    <span>{{ getStatusLabel(request.status) }}</span>
 
                     <div class="change-actions">
                         <button

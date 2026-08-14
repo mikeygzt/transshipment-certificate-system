@@ -385,3 +385,102 @@
     cursor: not-allowed;
     opacity: 0.6;
 }
+
+.filter-wrapper {
+    position: relative;
+}
+
+.filter-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 50;
+
+    width: 280px;
+    padding: 18px;
+
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.12);
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.filter-field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.filter-field select,
+.filter-field input {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    font: inherit;
+}
+
+.filter-field select:focus,
+.filter-field input:focus {
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
+}
+
+.clear-filter-button {
+    padding: 7px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.button-icon {
+    width: 17px;
+    height: 17px;
+}
+
+.request-status-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 5px 9px;
+    border-radius: 5px;
+    font-size: 0.76rem;
+    font-weight: 650;
+    text-transform: capitalize;
+}
+
+.submitted-status,
+.resubmitted-status {
+    background: #f2f4f7;
+    color: #475467;
+}
+
+.under-review-status {
+    background: #eff8ff;
+    color: #175cd3;
+}
+
+.approved-status {
+    background: #ecfdf3;
+    color: #027a48;
+}
+
+.rejected-status {
+    background: #fff1f0;
+    color: #b42318;
+}

@@ -322,7 +322,7 @@ export class Modaledit {
       billOfLadingWaybill: formValue.billOfLadingWaybill,
       rotationCallReference: formValue.rotationCallReference,
       remarksInstructions: formValue.remarksInstructions,
-      status: this.existingRequest.status,
+      status: "RESUBMITTED",
       reviewComments: this.existingRequest.reviewComments,
       pdfCertificatePath: this.existingRequest.pdfCertificatePath,
       containers: formValue.containers.map((container) => ({

@@ -197,6 +197,7 @@ label{
     flex-direction: row;
     gap: 24px;
     margin: 0 10px 10px;
+    height: 10px;
 }
 
 .decision-radio{
