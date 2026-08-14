@@ -39,93 +39,93 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(
-        HttpSecurity http,
-        SecurityContextRepository SecurityContextRepository,
-        SessionRegistry sessionRegistry
+            HttpSecurity http,
+            SecurityContextRepository SecurityContextRepository,
+            SessionRegistry sessionRegistry
     ) throws Exception {
-            http
+        http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.spa())
 
-                .securityContext(context -> 
-                    context.securityContextRepository(SecurityContextRepository)
+                .securityContext(context ->
+                        context.securityContextRepository(SecurityContextRepository)
                 )
 
                 .authorizeHttpRequests(auth -> auth
 
-                    .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                    .requestMatchers("/error").permitAll()
-                    
-                    .requestMatchers(
-                        HttpMethod.GET,
-                        "/api/auth/csrf"
-                    ).permitAll()
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                        .requestMatchers("/error").permitAll()
 
-                    .requestMatchers(
-                        HttpMethod.POST,
-                        "/api/auth/register",
-                        "/api/auth/login",
-                        "/api/auth/verify-email",
-                        "/api/auth/resend-verification"
-                    ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/auth/csrf"
+                        ).permitAll()
 
-                    .requestMatchers("/api/admin/**")
-                    .hasRole("ADMIN")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/auth/register",
+                                "/api/auth/login",
+                                "/api/auth/verify-email",
+                                "/api/auth/resend-verification"
+                        ).permitAll()
 
-                    .requestMatchers("/api/**")
-                    .authenticated()
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("ADMIN")
 
-                    .anyRequest()
-                    .denyAll()
+                        .requestMatchers("/api/**")
+                        .authenticated()
+
+                        .anyRequest()
+                        .denyAll()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
-                    .maximumSessions(-1) // -1 means unlimited concurrent sessions so it doesnt restrict users to one device
-                    .sessionRegistry(sessionRegistry)
-                    .expiredSessionStrategy(event -> {
-                        HttpServletResponse response = event.getResponse();
+                        .maximumSessions(-1) // -1 means unlimited concurrent sessions so it doesnt restrict users to one device
+                        .sessionRegistry(sessionRegistry)
+                        .expiredSessionStrategy(event -> {
+                            HttpServletResponse response = event.getResponse();
 
-                        response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                        response.setContentType("application/json");
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.setContentType("application/json");
 
-                        response.getWriter().write("{\"error\":\"ACCOUNT_DEACTIVATED\"}");
-                    })
+                            response.getWriter().write("{\"error\":\"ACCOUNT_DEACTIVATED\"}");
+                        })
                 )
-                .logout(logout -> 
-                    logout
-                        .logoutUrl("/api/auth/logout")
-                        .logoutSuccessHandler(
-                            (request, response, authentication) -> 
-                                response.setStatus(HttpServletResponse.SC_NO_CONTENT)
-                        )
-                )
-                .exceptionHandling(exceptions -> 
-                    exceptions
-                        .authenticationEntryPoint(
-                            (request, response, exception) ->
-                                response.sendError(HttpServletResponse.SC_FORBIDDEN)
-                        )   
-                        .accessDeniedHandler(
-                            (request, response, exception) -> 
-                                response.sendError(
-                                    HttpServletResponse.SC_FORBIDDEN
+                .logout(logout ->
+                        logout
+                                .logoutUrl("/api/auth/logout")
+                                .logoutSuccessHandler(
+                                        (request, response, authentication) ->
+                                                response.setStatus(HttpServletResponse.SC_NO_CONTENT)
                                 )
-                        )
+                )
+                .exceptionHandling(exceptions ->
+                        exceptions
+                                .authenticationEntryPoint(
+                                        (request, response, exception) ->
+                                                response.sendError(HttpServletResponse.SC_FORBIDDEN)
+                                )
+                                .accessDeniedHandler(
+                                        (request, response, exception) ->
+                                                response.sendError(
+                                                        HttpServletResponse.SC_FORBIDDEN
+                                                )
+                                )
                 );
-        return http.build(); 
+        return http.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories
-            .createDelegatingPasswordEncoder();
+                .createDelegatingPasswordEncoder();
     }
 
-    @Bean 
+    @Bean
     public AuthenticationManager authenticationManager(
-        UserDetailsService userDetailsService,
-        PasswordEncoder passwordEncoder
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder
     ) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
 
@@ -142,10 +142,10 @@ public class SecurityConfig {
     @Bean
     public SessionAuthenticationStrategy sessionAuthenticationStrategy(SessionRegistry sessionRegistry){
         return new CompositeSessionAuthenticationStrategy(
-            List.of(
-                new ChangeSessionIdAuthenticationStrategy(),
-                new RegisterSessionAuthenticationStrategy(sessionRegistry)
-            )
+                List.of(
+                        new ChangeSessionIdAuthenticationStrategy(),
+                        new RegisterSessionAuthenticationStrategy(sessionRegistry)
+                )
         );
     }
 
@@ -168,18 +168,18 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of("http://localhost:4200"));
 
         config.setAllowedMethods(
-            List.of(
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH",
-                "DELETE",
-                "OPTIONS"
-            )
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE",
+                        "OPTIONS"
+                )
         );
 
         config.setAllowedHeaders(
-            List.of("*")
+                List.of("*")
         );
 
         config.setAllowCredentials(true);

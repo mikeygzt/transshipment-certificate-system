@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-TransshipmentApiApplication<transshipment-api>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "jm.gov.jca.transshipment_api.TransshipmentApiApplication",
+            "projectName": "transshipment-api",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
