@@ -63,7 +63,7 @@
                                 [value]="statusFilter()"
                                 (change)="statusFilter.set($any($event.target).value)"
                             >
-                                <option value="ALL">All statuses</option>
+                                <option value="ALL">All Statuses</option>
                                 <option value="ACTIVE">Active</option>
                                 <option value="DEACTIVATED">Deactivated</option>
                                 <option value="PENDING_CONFIRMATION">Pending Confirmation</option>
@@ -78,7 +78,7 @@
 
         @if (isLoading()) {
             <div class="page-state">
-                <p>Loading user accounts...</p>
+                <p>Loading users...</p>
             </div>
         } @else if (errorMessage()) {
             <div class="page-state error-state">
@@ -86,67 +86,102 @@
             </div>
         } @else {
             <div class="table-container">
-                <table class="user-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">User</th>
-                            <th scope="col">TRN</th>
-                            <th scope="col">Role</th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Created</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        @for (user of filteredUsers(); track user.id) {
-                            <tr class="user-row"
-                                [class.selected-row]="selectedUser()?.id === user.id"
-                                (click)="openUserDetails(user)"
-                            >
-                                <td>
-                                    <div class="user-identity">
-                                        <span class="user-avatar" aria-hidden="true">
-                                            {{ user.fullName.charAt(0).toUpperCase() }}
-                                        </span>
-
-                                        <div>
-                                            <strong>{{ user.fullName }}</strong>
-                                            <strong>{{ user.email }}</strong>
-                                        </div>
+                <ngx-datatable
+                    class="material user-table"
+                    [rows]="filteredUsers()"
+                    [columnMode]="'flex'"
+                    [headerHeight]="50"
+                    [footerHeight]="50"
+                    [rowHeight]="'auto'"
+                    [limit]="15"
+                    [scrollbarH]="true"
+                    (activate)="onTableActivate($event)"
+                >
+                    <ngx-datatable-column
+                        name="User"
+                        prop="fullName"
+                        [flexGrow]="2"
+                        [width]="250"
+                    >
+                        <ng-template
+                            ngx-datatable-cell-template
+                            let-row="row"
+                        >
+                            <div class="user-cell">
+                                <div>
+                                    <strong>{{ row.fullName }}</strong>
+                                    <div class="user-email">
+                                        {{ row.email }}
                                     </div>
-                                </td>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </ngx-datatable-column>
 
-                                <td>
-                                    {{ user.companyTRN || "-" }}
-                                </td>
+                    <ngx-datatable-column
+                        name="TRN"
+                        prop="companyTRN"
+                        [flexGrow]="1.2"
+                        [width]="170"
+                    >
+                        <ng-template
+                            ngx-datatable-cell-template
+                            let-row="row"
+                        >
+                            {{ row.companyTRN ?? "-" }}
+                        </ng-template>
+                    </ngx-datatable-column>
 
-                                <td>
-                                    <span class="role-label">
-                                        {{ user.role }}
-                                    </span>
-                                </td>
+                    <ngx-datatable-column
+                        name="Role"
+                        prop="role"
+                        [flexGrow]="1"
+                        [width]="140"
+                    >
+                        <ng-template
+                            ngx-datatable-cell-template
+                            let-row="row"
+                        >
+                            {{ row.role }}
+                        </ng-template>
+                    </ngx-datatable-column>
 
-                                <td>
-                                    <span 
-                                    class="status=badge" 
-                                    [class.active-status]="user.status === 'ACTIVE'"
-                                    [class.pending-status]="user.status === 'PENDING_CONFIRMATION'"
-                                    [class.deactivated-status]="user.status === 'DEACTIVATED'">
-                                        {{ user.status === "PENDING_CONFIRMATION" ? "Pending" : user.status }}
-                                    </span>
-                                </td>
+                    <ngx-datatable-column
+                        name="Status"
+                        prop="status"
+                        [flexGrow]="1.3"
+                        [width]="190"
+                    >
+                        <ng-template
+                            ngx-datatable-cell-template
+                            let-row="row"
+                        >
+                            <span
+                                class="status-badge"
+                                [class.active]="row.status === 'ACTIVE'"
+                                [class.deactivated]="row.status === 'DEACTIVATED'"
+                                [class.pending]="row.status === 'PENDING_CONFIRMATION'"
+                            >
+                                {{ row.status }}
+                            </span>
+                        </ng-template>
+                    </ngx-datatable-column>
 
-                                <td>
-                                    {{ user.createdAt | date:"dd/MM/yyyy"}}
-                                </td>
-                            </tr>
-                        } @empty {
-                            <tr>
-                                <td colspan="5" class="empty-result">No users match your search.</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                    <ngx-datatable-column
+                        name="Created"
+                        prop="createdAt"
+                        [flexGrow]="1"
+                        [width]="160"
+                    >
+                        <ng-template
+                            ngx-datatable-cell-template
+                            let-row="row"
+                        >
+                            {{ row.createdAt | date:'dd MMM yyyy' }}
+                        </ng-template>
+                    </ngx-datatable-column>
+
+                </ngx-datatable>
             </div>
         }
 

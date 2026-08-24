@@ -52,9 +52,10 @@ public class UserAdminController {
     @PatchMapping("/{id}")
     public UserResponse updateUser(
         @PathVariable UUID id,
-        @Valid @RequestBody AdminUpdateUserRequest request
+        @Valid @RequestBody AdminUpdateUserRequest request,
+        Authentication authentication
     ) {
-        return userService.updateUser(id, request);
+        return userService.updateUser(id, request, authentication);
     }
 
     @PatchMapping("/{id}/deactivate")

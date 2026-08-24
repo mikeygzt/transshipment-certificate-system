@@ -1,39 +1,55 @@
 :host {
     display: block;
-    min-height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
 }
 
 .dashboard-page {
-    min-height: 100vh;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* min-height: 100vh; */
     background: #eef0f5;
 }
 
 .dashboard-body {
+    flex: 1;
+    min-height: 0;
     display: grid;
     grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     gap: 12px;
-    min-height: clac(100vh - 72px);
     padding: 12px;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
-.dashboard-sidebar,
-.dashboard-content {
+.dashboard-sidebar {
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    height: 100%;
+    overflow-y: auto;
+
     border: 1px solid #e2e5eb;
     border-radius: 12px;
     background: #ffffff;
 }
 
-.dashboard-sidebar {
-    position: sticky;
-    top: 12px;
-    align-self: start;
-
-    display: flex;
-    flex-direction: column;
-
-    height: calc(100vh - 96px);
+.dashboard-content {
+    min-width: 0;
+    min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px;
+    box-sizing: border-box;
+}
 
+.dashboard-sidebar,
+.dashboard-content {
     border: 1px solid #e2e5eb;
     border-radius: 12px;
     background: #ffffff;
@@ -97,12 +113,6 @@
 .sidebar-bottom {
     flex: 1;
     min-height: 180px;
-}
-
-.dashboard-content {
-    min-width: 0;
-    min-height: calc(100vh - 96px);
-    padding: 32px;
 }
 
 @media (max-width: 900px) {

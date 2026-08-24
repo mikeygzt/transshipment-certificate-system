@@ -25,7 +25,12 @@
                 "input": "public"
               }
             ],
-            "styles": [ "src/styles.css"]
+            "styles": [
+              "src/styles.css",
+              "node_modules/@swimlane/ngx-datatable/index.css",
+              "node_modules/@swimlane/ngx-datatable/themes/material.css",
+              "node_modules/@swimlane/ngx-datatable/assets/icons.css"
+            ]
           },
           "configurations": {
             "production": {

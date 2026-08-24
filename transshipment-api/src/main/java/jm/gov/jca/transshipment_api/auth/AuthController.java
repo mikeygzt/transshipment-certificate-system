@@ -28,6 +28,7 @@ import org.springframework.web.server.ResponseStatusException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jm.gov.jca.transshipment_api.audit.AuditLogService;
 import jm.gov.jca.transshipment_api.auth.dto.CurrentUserResponse;
 import jm.gov.jca.transshipment_api.auth.dto.LoginRequest;
 import jm.gov.jca.transshipment_api.auth.dto.ResendVerificationRequest;
@@ -54,18 +55,22 @@ public class AuthController {
 
     private final UserRepository userRepository;
 
+    private final AuditLogService auditLogService;
+
     public AuthController(
         AuthenticationManager authenticationManager,
         SecurityContextRepository securityContextRepository,
         SessionAuthenticationStrategy sessionAuthenticationStrategy,
         UserService userService,
-        UserRepository userRepository
+        UserRepository userRepository,
+        AuditLogService auditLogService
     ) {
         this.authenticationManager = authenticationManager;
         this.securityContextRepository = securityContextRepository;
         this.sessionAuthenticationStrategy = sessionAuthenticationStrategy;
         this.userService = userService;
         this.userRepository = userRepository;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping("/csrf")
@@ -109,23 +114,23 @@ public class AuthController {
                     "User account not found"
                 ));
             
-                if (user.getStatus() == Status.PENDING_CONFIRMATION) {
-                    return ResponseEntity
-                        .status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of(
-                            "error",
-                            "EMAIL_NOT_VERIFIED"
-                        ));
-                }
+            if (user.getStatus() == Status.PENDING_CONFIRMATION) {
+                return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of(
+                        "error",
+                        "EMAIL_NOT_VERIFIED"
+                    ));
+            }
 
-                if (user.getStatus() == Status.DEACTIVATED) {
-                    return ResponseEntity
-                        .status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of(
-                            "error",
-                            "ACCOUNT_DEACTIVATED"
-                        ));
-                }
+            if (user.getStatus() == Status.DEACTIVATED) {
+                return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of(
+                        "error",
+                        "ACCOUNT_DEACTIVATED"
+                    ));
+            }
 
             // Protect against session fixation
             sessionAuthenticationStrategy.onAuthentication(authentication, httpRequest, httpResponse);
@@ -138,11 +143,13 @@ public class AuthController {
 
             SecurityContextHolder.setContext(context);
 
-            securityContextRepository
-                .saveContext(context, httpRequest, httpResponse);
+            securityContextRepository.saveContext(context, httpRequest, httpResponse);
             
             // temp
             System.out.println("SECURITY CONTEXT SAVED");
+
+            // Audit log capture
+            auditLogService.recordLogin(user);
             
             return ResponseEntity.ok(toAuthResponse(authentication));
             
@@ -183,9 +190,10 @@ public class AuthController {
     @PatchMapping("/{userId}")
     public UserResponse updateUser(
         @PathVariable UUID userId,
-        @Valid @RequestBody AdminUpdateUserRequest request
+        @Valid @RequestBody AdminUpdateUserRequest request,
+        Authentication authentication
     ){
-        return userService.updateUser(userId, request);
+        return userService.updateUser(userId, request, authentication);
     }
 
     private CurrentUserResponse toAuthResponse(Authentication authentication){
