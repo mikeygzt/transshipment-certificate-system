@@ -7,7 +7,7 @@ import { TransshipmentResponse, Transshipmentrequest, RequestStatus } from '../.
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
 import { AuthenticatedUser } from '../../auth.models';
-import { LucideListFilter, LucidePlus, LucideSearch, LucideX } from '@lucide/angular';
+import { LucideListFilter, LucideSearch, LucideX } from '@lucide/angular';
 import { finalize } from 'rxjs';
 import { Dialog } from '@angular/cdk/dialog';
 import { ModalReview } from '../../modal-review/modal-review';
@@ -16,7 +16,7 @@ type ReviewQueueStatusFilter = 'ALL' | 'SUBMITTED' | 'UNDER_REVIEW' | 'RESUBMITT
 
 @Component({
   selector: 'app-review-queue',
-  imports: [DashboardLayout, ReactiveFormsModule, LucideListFilter, LucideSearch, LucidePlus, LucideX],
+  imports: [DashboardLayout, ReactiveFormsModule, LucideListFilter, LucideSearch, LucideX],
   templateUrl: './review-queue.html',
   styleUrl: './review-queue.css',
 })

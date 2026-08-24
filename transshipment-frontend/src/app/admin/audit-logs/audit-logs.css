@@ -1,0 +1,195 @@
+:host {
+    display: block;
+    min-width: 0;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.audit-logs-page {
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+}
+
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.page-header h1 {
+    margin: 0;
+    color: #111827;
+    font-size: 1.65rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.page-header p {
+    margin: 8px 0 0;
+    color: #667085;
+    font-size: 0.93rem;
+    line-height: 1.5;
+}
+
+.audit-logs-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.search-control {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: min(100%, 390px);
+}
+
+.search-control input {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 14px 0 42px;
+    border: 1px solid #d7dce2;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #111827;
+    font: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: 
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.search-control input:focus {
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgb(25 118 210 / 12%);
+}
+
+.search-control input::placeholder {
+    color: #98a2b3;
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    color: #667085;
+    pointer-events: none;
+}
+
+.filter-wrapper {
+    position: relative;
+}
+
+/* to be implemented
+
+.filter-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: flex-end;
+    background: rgb(15 23 42 / 22%);
+} */
+
+.filter-button {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 16px;
+    border: 1px solid #d7dce2;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #344054;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.filter-button:hover {
+    background: #f8fafc;
+}
+
+.filter-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 50;
+
+    width: 280px;
+    padding: 18px;
+
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.12);
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.filter-field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.filter-field select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    font: inherit;
+}
+
+.filter-field select:focus {
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
+}
+
+.date-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 16px;
+}
+
+.date-filter label {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.clear-filter-button {
+    padding: 7px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.button-icon {
+    width: 17px;
+    height: 17px;
+}
+

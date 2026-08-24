@@ -38,7 +38,15 @@
                                     aria-hidden="true"
                                 ></svg>
                                 User Governance
-                            </a>    
+                            </a>
+                            <a routerLink="/audit-logs" routerLinkActive="active">
+                                <svg
+                                    lucideLogs
+                                    class="nav-icon"
+                                    aria-hidden="true"
+                                ></svg>
+                                Audit Logs
+                            </a>
                         }
                     }
                 </nav>
@@ -46,7 +54,6 @@
         </aside>
 
         <main class="dashboard-content">
-            <!-- Dejone add your section here -->
              <ng-content />
         </main>
     </div>

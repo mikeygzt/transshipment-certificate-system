@@ -7,6 +7,7 @@ import { ReviewQueue } from './reviewer/review-queue/review-queue';
 import { UserGovernance } from './admin/user-governance/user-governance';
 import { roleGuard } from './auth/role.guard';
 import { guestGuard } from './auth/guest.guard';
+import { AuditLogs } from './admin/audit-logs/audit-logs';
 
 export const routes: Routes = [
     {
@@ -36,6 +37,11 @@ export const routes: Routes = [
     {
         path: "user-governance",
         component: UserGovernance,
+        canActivate: [roleGuard(["ADMIN"])]
+    },
+    {
+        path: "audit-logs",
+        component: AuditLogs,
         canActivate: [roleGuard(["ADMIN"])]
     },
     {

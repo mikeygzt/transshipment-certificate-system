@@ -6,6 +6,7 @@ import { finalize } from 'rxjs';
 import { LucideListFilter, LucideSearch, LucideSquarePen, LucideTriangleAlert, LucideX } from '@lucide/angular';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 
 @Component({
   selector: 'app-user-governance',
@@ -13,6 +14,7 @@ import { DatePipe } from '@angular/common';
     DashboardLayout,
     ReactiveFormsModule,
     DatePipe, 
+    NgxDatatableModule,
     LucideSearch, 
     LucideListFilter,
     LucideX,
@@ -108,6 +110,12 @@ export class UserGovernance {
   clearFilters(): void {
     this.roleFilter.set("ALL");
     this.statusFilter.set("ALL");
+  }
+
+  onTableActivate(event: any): void {
+    if (event.type === "click" && event.row) {
+      this.openUserDetails(event.row);
+    }
   }
 
   openUserDetails(user: UserResponse): void {

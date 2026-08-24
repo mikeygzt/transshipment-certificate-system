@@ -1,0 +1,226 @@
+<app-dashboard-layout [role]="'ADMIN'">
+    <section class="audit-logs-page">
+        <header class="page-header">
+            <div>
+                <h1>Audit Logs</h1>
+                <p>View administrative and system activity.</p>
+            </div>    
+        </header>
+
+        <div class="audit-logs-toolbar">
+            <label class="search-control">
+                <svg
+                    lucideSearch
+                    class="search-icon"
+                    aria-hidden="true"
+                ></svg>
+
+                <input 
+                    type="search"
+                    placeholder="Search by name, email or TRN"
+                    aria-label="Search users"
+                    [value]="searchTerm()"
+                    (input)="searchTerm.set($any($event.target).value)"
+                />
+            </label>
+
+            <div class="filter-wrapper">
+                <button 
+                    type="button" 
+                    class="filter-button"
+                    (click)="toggleFilter()">
+                    <svg
+                        lucideListFilter
+                        class="button-icon"
+                        aria-hidden="true"
+                    ></svg>
+    
+                    <span>Filter</span>
+                </button>
+    
+                @if(isFilterOpen()) {
+                    <div class="filter-menu">
+                        <div class="filter-field">
+                            <label for="actionField">Action</label>
+    
+                            <select
+                                id="auditLogFilter"
+                                [value]="auditLogFilter()"
+                                (change)="auditLogFilter.set($any($event.target).value)"
+                            >
+                                <option value="ALL">All actions</option>
+                                <option value="USER_LOGIN">User login</option>
+                                <option value="REQUEST_SUBMITTED">Submitted requests</option>
+                                <option value="REQUEST_APPROVED">Approved requests</option>
+                                <option value="REQUEST_REJECTED">Rejected requests</option>
+                                <option value="REQUEST_RESUBMITTED">Resubmitted requests</option>
+                                <option value="USER_ROLE_MODIFIED">User role modifications</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="date-filter">
+                                <label for="fromDate">From</label>
+
+                                <input 
+                                    id="fromDate"
+                                    type="date"
+                                    [value]="fromDate()"
+                                    (change)="fromDate.set($any($event.target).value)"
+                                />
+                            </div>
+
+                            <div class="date-filter">
+                                <label for="toDate">To</label>
+
+                                <input 
+                                    id="toDate"
+                                    type="date"
+                                    [value]="toDate()"
+                                    (change)="toDate.set($any($event.target).value)"
+                                />
+                            </div>
+                        </div>
+    
+                        <button type="button" class="clear-filter-button" (click)="clearFilters()">Clear</button>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (isLoading()) {
+            <p>Loading audit logs...</p>
+        } @else if (errorMessage()) {
+            <p class="error-message">
+                {{ errorMessage() }}
+            </p>
+        } @else if (auditLogs().length === 0) {
+            <p>No audit logs found.</p>
+        } @else {
+            <div class="table-wrapper">
+                <ngx-datatable
+                    class="material audit-table"
+                    [rows]="filteredAuditLogs()"
+                    [columnMode]="'flex'"
+                    [headerHeight]="50"
+                    [footerHeight]="50"
+                    [rowHeight]="'auto'"
+                    [limit]="15"
+                    [scrollbarH]="true"
+                >
+                    <ngx-datatable-column
+                        name="Date"
+                        prop="timestamp"
+                        [flexGrow]="1.3"
+                        [minWidth]="200"
+                    >
+                        <ng-template
+                            ngx-datatable-cell-template
+                            let-row="row"
+                        >
+                            {{ row.timestamp | date:'dd MMM yyyy, h:mm a' }}
+                        </ng-template>
+                    </ngx-datatable-column>
+
+                    <ngx-datatable-column
+                        name="Performed By"
+                        prop="performedByEmail"
+                        [flexGrow]="1.8"
+                        [minWidth]="220"
+                    >
+                        <ng-template
+                            ngx-datatable-cell-template
+                            let-row="row"
+                        >
+                            {{ row.performedByEmail }}
+                        </ng-template>
+                    </ngx-datatable-column>
+
+                    <ngx-datatable-column
+                        name="Action"
+                        prop="action"
+                        [flexGrow]="1.5"
+                        [minWidth]="190"
+                    >
+                        <ng-template
+                            ngx-datatable-cell-template
+                            let-row="row"
+                        >
+                            {{ getActionLabel(row.action) }}
+                        </ng-template>
+                    </ngx-datatable-column>
+
+                    <ngx-datatable-column
+                        name="Target"
+                        prop="targetUserEmail"
+                        [flexGrow]="1.5"
+                        [minWidth]="190"
+                    >
+                        <ng-template
+                            ngx-datatable-cell-template
+                            let-row="row"
+                        >
+                            {{ row.targetUserEmail ?? "-" }}
+                        </ng-template>
+                    </ngx-datatable-column>
+
+                    <ngx-datatable-column
+                        name="Request ID"
+                        prop="transshipmentRequestId"
+                        [flexGrow]="1.5"
+                        [minWidth]="220"
+                    >
+                        <ng-template
+                            ngx-datatable-cell-template
+                            let-row="row"
+                        >
+                            {{ row.transshipmentRequestId ?? "-" }}
+                        </ng-template>
+                    </ngx-datatable-column>
+
+                    <ngx-datatable-column
+                        name="Change"
+                        [flexGrow]="1.5"
+                        [minWidth]="200"
+                        cellClass="change-column"
+                    >
+                        <ng-template
+                            ngx-datatable-cell-template
+                            let-row="row"
+                        >
+                            @if (row.previousStatus || row.newStatus) {
+                                <div>
+                                    <span>
+                                        {{ row.previousStatus ?? "-" }}
+                                    </span>
+                                    <svg
+                                        lucideArrowRight
+                                        [size]="16"
+                                    ></svg>
+                                    <span>
+                                        {{ row.newStatus ?? "-" }}
+                                    </span>
+                                </div>
+                            } @else if (row.previousRole || row.newRole) {
+                                <div>
+                                    <span>
+                                        {{ row.previousRole }}
+                                    </span>
+                                    <svg
+                                        lucideArrowRight
+                                        [size]="16"
+                                    ></svg>
+                                    <span>
+                                        {{ row.newRole ?? "-" }}
+                                    </span>
+                                </div>
+                            } @else {
+                                -
+                            }
+                        </ng-template>
+                    </ngx-datatable-column>
+                </ngx-datatable>
+            </div>
+        }
+    </section>
+</app-dashboard-layout>
