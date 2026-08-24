@@ -3,15 +3,10 @@ package jm.gov.jca.transshipment_api.transshipment_request.dto;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-
-import org.springframework.beans.factory.annotation.Autowired;
-
 import jm.gov.jca.transshipment_api.transshipment_request.RequestStatus;
-import jm.gov.jca.transshipment_api.user.UserAccount;
 
 public record TransshipmentDetailsResponse(
         UUID requestId,

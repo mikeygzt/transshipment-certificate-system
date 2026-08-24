@@ -2,8 +2,6 @@ package jm.gov.jca.transshipment_api.transshipment_request;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;

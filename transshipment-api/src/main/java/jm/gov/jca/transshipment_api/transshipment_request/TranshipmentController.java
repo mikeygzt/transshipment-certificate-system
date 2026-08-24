@@ -3,8 +3,8 @@ package jm.gov.jca.transshipment_api.transshipment_request;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -17,9 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 
@@ -62,9 +60,13 @@ public class TranshipmentController {
 
     @PatchMapping("/update/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void updateRequest(@PathVariable UUID id, @Valid @RequestBody TransshipmentDetailsRequest request) {
+    public void updateRequest(
+        @PathVariable UUID id,
+        @Valid @RequestBody TransshipmentDetailsRequest request,
+        Authentication authentication
+    ) {
         //better to add on the id of the request then the new request
-        transshipmentService.updateRequest(id, request);
+        transshipmentService.updateRequest(id, request, authentication);
     }
 
     

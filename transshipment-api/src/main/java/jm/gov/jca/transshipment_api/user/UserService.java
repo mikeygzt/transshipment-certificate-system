@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import jm.gov.jca.transshipment_api.audit.AuditLogService;
 import jm.gov.jca.transshipment_api.auth.verification.EmailVerificationRepository;
 import jm.gov.jca.transshipment_api.auth.verification.EmailVerificationService;
 import jm.gov.jca.transshipment_api.user.dto.AdminCreateUserRequest;
@@ -30,19 +31,22 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
     private final SessionRegistry sessionRegistry;
+    private final AuditLogService auditLogService;
 
     public UserService(
         UserRepository userRepository, 
         EmailVerificationRepository emailVerificationRepository,
         PasswordEncoder passwordEncoder,
         EmailVerificationService emailVerificationService,
-        SessionRegistry sessionRegistry
+        SessionRegistry sessionRegistry,
+        AuditLogService auditLogService
     ) {
         this.userRepository = userRepository;
         this.emailVerificationRepository = emailVerificationRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailVerificationService = emailVerificationService;
         this.sessionRegistry = sessionRegistry;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -104,13 +108,13 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                 "This account has already been deactivated");
         }
-
+        
         user.setStatus(Status.DEACTIVATED);
 
         UserAccount updatedUser = userRepository.save(user);
 
         expireUserSession(updatedUser.getEmail());
-        
+
         return toResponse(updatedUser);
     }
 
@@ -162,13 +166,20 @@ public class UserService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    public UserResponse updateUser(UUID userId, AdminUpdateUserRequest request) {
+    public UserResponse updateUser(UUID userId, AdminUpdateUserRequest request, Authentication authentication) {
         UserAccount user = userRepository
             .findById(userId)
             .orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "User account not found"
             ));
+
+        // Audit log capture
+        UserAccount performedBy = userRepository
+            .findByEmailIgnoreCase(authentication.getName())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                "Authenticated user not found"));
+
 
         user.setFullName(request.fullName());
 
@@ -199,7 +210,16 @@ public class UserService {
         }
 
         if (request.role() != null) {
+
+            // Audit log capture
+            Role previousRole = user.getRole();
+
             user.setRole(request.role());
+
+            // Audit log capture
+            Role newRole = user.getRole();
+
+            auditLogService.recordRoleModification(performedBy, user, previousRole, newRole);
         }
 
         UserAccount updatedUser = userRepository.save(user);

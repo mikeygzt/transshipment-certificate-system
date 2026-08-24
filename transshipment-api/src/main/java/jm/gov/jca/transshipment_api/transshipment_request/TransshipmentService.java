@@ -5,11 +5,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import jm.gov.jca.transshipment_api.audit.AuditAction;
+import jm.gov.jca.transshipment_api.audit.AuditLogService;
 import jm.gov.jca.transshipment_api.transshipment_request.dto.ContainerDetailsRequest;
 import jm.gov.jca.transshipment_api.transshipment_request.dto.ContainerDetailsResponse;
 import jm.gov.jca.transshipment_api.user.UserRepository;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,18 +28,22 @@ public class TransshipmentService {
     private final UserRepository userRepository;
     private final ContainerDetailsRepository containerDetailsRepository;
     private final ContainerMapper containerMapper;
+    private final AuditLogService auditLogService;
 
     public TransshipmentService(
             TransshipmentRequestRepository transshipmentRequestRepository,
             RequestMapper requestMapper,
             UserRepository userRepository,
             ContainerDetailsRepository containerDetailsRepository,
-            ContainerMapper containerMapper) {
+            ContainerMapper containerMapper,
+            AuditLogService auditLogService
+        ) {
         this.transshipmentRequestRepository = transshipmentRequestRepository;
         this.requestMapper = requestMapper;
         this.userRepository = userRepository;
         this.containerDetailsRepository = containerDetailsRepository;
         this.containerMapper = containerMapper;
+        this.auditLogService = auditLogService;
     }
 
     //create a response entity
@@ -79,7 +85,13 @@ public class TransshipmentService {
                 request.pdfCertificatePath()
         );
 
+        // Audit log capture
+        RequestStatus previousStatus = entity.getStatus();
+
         entity.setStatus(RequestStatus.SUBMITTED);
+
+        // Audit log capture
+        RequestStatus newStatus = entity.getStatus();
 
         TransshipmentRequest savedRequest = transshipmentRequestRepository.save(entity);
 
@@ -99,6 +111,15 @@ public class TransshipmentService {
                 .toList();
 
         List<ContainerDetails> savedContainers = containerDetailsRepository.saveAll(newContainers);
+
+        // Audit log
+        auditLogService.recordTransshipmentRequestAction(
+                savedRequest.getRequestId(),
+                requester, 
+                AuditAction.REQUEST_SUBMITTED, 
+                previousStatus, 
+                newStatus
+        );
 
         return buildResponse(savedRequest, savedContainers);
     }
@@ -144,7 +165,7 @@ public class TransshipmentService {
 
     //Allow for updates to the request
     @Transactional
-    public void updateRequest(UUID id, TransshipmentDetailsRequest request) {
+    public void updateRequest(UUID id, TransshipmentDetailsRequest request, Authentication authentication) {
         //strip the value of the requestid
         //Find the request by id
 
@@ -153,7 +174,16 @@ public class TransshipmentService {
                 .orElseThrow(() ->
                         new ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found")
                 );
-        //identify the information needed to be changed
+        
+        UserAccount performedBy = userRepository
+                .findByEmailIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, 
+                        "Authenticated user not found"));
+
+        RequestStatus previousStatus = thisRequest.getStatus();
+        
+        // temp
+        System.out.println("PREVIOUS STATUS: " + previousStatus);
 
         requestMapper.updateEntityFromRequest(request, thisRequest);
         //replace that information in db
@@ -165,10 +195,41 @@ public class TransshipmentService {
             thisRequest.setRequesterUserId(requester);
         }
 
+        RequestStatus newStatus = thisRequest.getStatus();
+
+        // temp
+        System.out.println("NEW STATUS: " + newStatus);
+
         transshipmentRequestRepository.save(thisRequest);
 
+        
         if (request.containers() != null) {
-            updateContainers(thisRequest, request.containers());
+                updateContainers(thisRequest, request.containers());
+        }
+
+        if (previousStatus != newStatus) {
+                AuditAction auditAction = null;
+
+                if (newStatus == RequestStatus.APPROVED) {
+                        auditAction = AuditAction.REQUEST_APPROVED;
+
+                } else if (newStatus == RequestStatus.REJECTED) {
+                        auditAction = AuditAction.REQUEST_REJECTED;
+
+                } else if (newStatus == RequestStatus.RESUBMITTED) {
+                        auditAction = AuditAction.REQUEST_RESUBMITTED;
+                }
+
+                // Audit log
+                if (auditAction != null) {         
+                        auditLogService.recordTransshipmentRequestAction(
+                                thisRequest.getRequestId(),
+                                performedBy, 
+                                auditAction, 
+                                previousStatus, 
+                                newStatus
+                        );
+                }
         }
     }
 
