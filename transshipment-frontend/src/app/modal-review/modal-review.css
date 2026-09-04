@@ -23,12 +23,20 @@
     display: flex;
     flex-direction: row;
     column-gap: 14px;
+    padding-inline: 5px;
 }
 
 .form-group{
     display: flex;
     flex-direction: column;
-    margin: 10px;
+    margin-bottom: 10px;
+    gap: 8px;
+    width: 100%;
+}
+
+.form-group-review-comments {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
     width: 100%;
 }
@@ -44,17 +52,6 @@
     background: #f9fafb;
     color: #1f2937;
     font: inherit;
-}
-
-#remarks input{
-    min-height: 144px;
-    padding: 4px;
-}
-
-#remarks p{
-    min-height: 144px;
-    align-items: flex-start;
-    padding-top: 12px;
 }
 
 textarea{
@@ -88,9 +85,18 @@ select{
 }
 
 .field-error{
-    margin: 0;
+    margin: 0px;
     color: #c62828;
     font-size: 0.72rem;
+}
+
+.submit-decision {
+    margin-block: 10px;
+    padding: 10px;
+}
+
+.submit-decision:hover {
+    cursor: pointer;
 }
 
 .form-error{
@@ -135,16 +141,8 @@ label{
     margin: 4px;
 }
 
-.save-submit{
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-}
-
 .save-submit button{
-    height: 43px;
-    padding-left: 40px;
-    padding-right: 40px;
+    padding: 10px;
 }
 
 .primary-button{

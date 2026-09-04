@@ -21,22 +21,21 @@
     </section>
 
     @if (requests().length > 0) {
-        <div
-        class="request-toolbar">
-        <label class="search">
-            <svg
-            lucideSearch
-            class="search-icon"
-            aria-hidden="true"
-            ></svg>
+        <div class="request-toolbar">
+            <label class="search">
+                <svg
+                    lucideSearch
+                    class="search-icon"
+                    aria-hidden="true"
+                ></svg>
 
-            <input 
-            type="search"
-            placeholder="Search by Creation Date, Manifest Number, or Bill of Lading"
-            aria-label = "Search requests"
-            (input)="updateSearch($event)"
-
-            >
+                <input 
+                    type="search"
+                    placeholder="Search by Creation Date, Manifest Number, or Bill of Lading"
+                    aria-label = "Search requests"
+                    (input)="updateSearch($event)"
+                />
+            </label>
 
             <div class="filter-wrapper">
                 <button 
@@ -85,78 +84,131 @@
                 <span>New Request</span>
 
             </button>
-
-        </label>
         </div>
 
-        <div class="table-container">
-        <table class="request-table">
-            <thead>
-                <tr>
-                    <th scope="col">Date of Creation</th>
-                    <th scope="col">Request Type</th>
-                    <th scope="col">Manifest Number</th>
-                    <th scope="col">Bill of Lading</th>
-                    <th scope="col">Status</th>
-                    <th scope="col"></th>
-                </tr>
-            </thead>
+        <div class="table-container"> 
+            <!-- TODO: Fix margin between this and search bar -->
 
-            <tbody>
-                @for (request of filteredRequests(); track request.requestId) {
-                    <tr class="request-row"
-                        [class.selected-row]="selectedRequest()?.requestId === request.requestId"
-                        (click)="openRequestDetails(request)"
+            <ngx-datatable
+                class="material request-table"
+                [rows]="filteredRequests()"
+                [columnMode]="'flex'"
+                [headerHeight]="50"
+                [footerHeight]="50"
+                [rowHeight]="50"
+                [limit]="10"
+                (activate)="onTableActivate($event)"
+            >
+                <ngx-datatable-column
+                    name="Created"
+                    prop="createdAt"
+                    [flexGrow]="1"
+                    [width]="140"
+                >
+                    <ng-template
+                        ngx-datatable-cell-template
+                        let-row="row"
                     >
-                        <td>
-                            {{ formatCreatedAt(request.createdAt) }}
-                        </td>
-                        <td>
-                            <span class="request-type-label">
-                                {{ request.requestType }}
-                            </span>
-                        </td>
-                        <td>
-                            {{ request.manifestNumber || "-" }}
-                        </td>
-                        <td>
-                            {{ request.billOfLadingWaybill || "-" }}
-                        </td>
-                        <td>
-                            <span
-                                class="request-status-badge"
-                                [class.submitted-status]="request.status === 'SUBMITTED'"
-                                [class.under-review-status]="request.status === 'UNDER_REVIEW'"
-                                [class.approved-status]="request.status === 'APPROVED'"
-                                [class.rejected-status]="request.status === 'REJECTED'"
-                                [class.resubmitted-status]="request.status === 'RESUBMITTED'"
-                            >
-                                {{ getStatusLabel(request.status) }}
-                            </span>
-                        </td>
-                        <td>
-                            <button
-                                type="button"
-                                class="delete-request-button"
-                                (click)="openDeleteConfirmation($event, request)"
-                            >
-                                <svg
-                                    lucideTrash
-                                    class="button-icon"
-                                    aria-hidden="true"
-                                ></svg>
-                                <span>Delete Request</span>
-                            </button>
-                        </td>
-                    </tr>
-                } @empty {
-                    <tr>
-                        <td colspan="6" class="empty-result">No requests match your search.</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                        {{ row.createdAt | date:'dd MMM yyyy' }}
+                    </ng-template>
+                </ngx-datatable-column>
+
+                <ngx-datatable-column
+                    name="Request Type"
+                    prop="requestType"
+                    [flexGrow]="2.2"
+                    [width]="220"
+                >
+                    <ng-template
+                        ngx-datatable-cell-template
+                        let-row="row"
+                    >
+                        {{ row.requestType ?? "-" }}
+                    </ng-template>
+                    
+                </ngx-datatable-column>
+
+                <ngx-datatable-column
+                    name="Manifest Number"
+                    prop="manifestNumber"
+                    [flexGrow]="1"
+                    [width]="130"
+                >
+                    <ng-template
+                        ngx-datatable-cell-template
+                        let-row="row"
+                    >
+                        {{ row.manifestNumber ?? "-" }}
+                    </ng-template>
+                    
+                </ngx-datatable-column>
+
+                <ngx-datatable-column
+                    name="Bill of Lading"
+                    prop="billOfLadingWaybill"
+                    [flexGrow]="1"
+                    [width]="130"
+                >
+                    <ng-template
+                        ngx-datatable-cell-template
+                        let-row="row"
+                    >
+                        {{ row.billOfLadingWaybill ?? "-" }}
+                    </ng-template>
+                    
+                </ngx-datatable-column>
+
+                <ngx-datatable-column
+                    name="Status"
+                    prop="status"
+                    [flexGrow]="1.3"
+                    [width]="190"
+                >
+                    <ng-template
+                        ngx-datatable-cell-template
+                        let-row="row"
+                    >
+                        <span
+                            class="request-status-badge"
+                            [class.submitted-status]="row.status === 'SUBMITTED'"
+                            [class.under-review-status]="row.status === 'UNDER_REVIEW'"
+                            [class.approved-status]="row.status === 'APPROVED'"
+                            [class.rejected-status]="row.status === 'REJECTED'"
+                            [class.resubmitted-status]="row.status === 'RESUBMITTED'"
+                        
+                        >
+                            {{ getStatusLabel(row.status) ?? "-" }}
+                        </span>
+                    </ng-template>
+                    
+                </ngx-datatable-column>
+
+                <ngx-datatable-column
+                    name="Action"
+                    [flexGrow]="1.3"
+                    [width]="190"
+                >
+                    <ng-template
+                        ngx-datatable-cell-template
+                        let-row="row"
+                    >
+
+                    @if (row.status === "APPROVED") {
+                        <button
+                            type="button"
+                            class="certificate-pdf-button"
+                            onclick="event.stopPropagation()"
+                            (mousedown)="viewCertificate(row.requestId)"
+                        >
+                            View Certificate
+    
+                        </button>
+                    }
+                    </ng-template>
+                    
+                </ngx-datatable-column>
+            </ngx-datatable>
+        </div>
     } @else {
         <div
         class="no-requests">
@@ -217,6 +269,33 @@
                 <div>
                     <h3>{{ request.requestType }}</h3>
                     <p>{{ request.manifestNumber }}</p>
+                    @if (request.status == "APPROVED") {
+                        <div class="drawer-pdf-certificate-group">
+                            <button 
+                                type="button" 
+                                class="drawer-view-certificate certificate-buttons" 
+                                (click)="viewCertificate(request.requestId)">
+                                <svg 
+                                    lucideEye
+                                    class="certificate-icons"
+                                    aria-hidden="true"
+                                ></svg>
+                                View Certificate
+                            </button>
+    
+                            <button 
+                                type="button" 
+                                class="drawer-download-certificate certificate-buttons" 
+                                (click)="downloadCertificate(request.requestId)">
+                                <svg
+                                    lucideDownload
+                                    class="certificate-icons"
+                                    aria-hidden="true"
+                                ></svg>
+                                Download Certificate
+                            </button>
+                        </div>
+                    }
                 </div>
             </section>
 

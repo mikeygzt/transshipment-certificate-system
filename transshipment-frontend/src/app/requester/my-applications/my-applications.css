@@ -56,6 +56,14 @@
     cursor: pointer;
     
 }
+
+.request-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
 .search{
     position: relative;
     display: flex;
@@ -246,60 +254,14 @@
 }
 
 .table-container {
-    width: 100%;
-    height: auto;
-    min-height: 0;
-    align-self: flex-start;
-    overflow-x: auto;
-    border: 1px solid #e3e7ec;
-    border-radius: 10px;
-    background: #ffffff;
-    margin-top: 30px;
-    
-}
-
-.request-table {
-    width: 100%;
-    height: auto;
-    border-collapse: collapse;
-}
-
-.request-table th, .user-table td {
-    padding: 15px 16px;
-    border-bottom: 1px solid #eaecf0;
-    text-align: left;
-    vertical-align: middle;
-}
-
-.request-table th {
-    background: #f8fafc;
-    color: #475467;
-    font-size: 0.78rem;
-    font-weight: 650;
-    letter-spacing: 0.02rem;
-    text-transform: uppercase;
-}
-
-.request-table td {
-    color: #344054;
-    font-size: 0.88rem;
-    padding: 15px 16px;
-}
-
-.request-table tbody tr:hover {
-    background: #f8fafc;
-    cursor: pointer;
+    margin-top: 10px;
 }
 
 .request-status-badge {
-    display: inline-flex;
-    align-items: center;
-    min-height: 26px;
-    padding: 5px 9px;
+    padding: 5px;
     border-radius: 5px;
-    font-size: 0.76rem;
     font-weight: 650;
-    text-transform: capitalize;
+    font-size: 0.76rem;
 }
 
 .submitted-status,
@@ -321,6 +283,20 @@
 .rejected-status {
     background: #fff1f0;
     color: #b42318;
+}
+
+.certificate-pdf-button {
+    padding: 5px;
+    border: 1px solid #0c426f;
+    border-radius: 5px;
+    background-color: #ffffff;
+    color: #0c426f;
+}
+
+.certificate-pdf-button:hover {
+    cursor: pointer;
+    background-color: #0c426f;
+    color: #e6e6e6;
 }
 
 .details-drawer {
@@ -357,6 +333,77 @@
     color: #101828;
     font-size: 1.25rem;
 }
+
+.drawer-label {
+    color: #667085;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.drawer-pdf-certificate-group {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.certificate-buttons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.65rem;
+    border-radius: 3px;
+    padding: 3px;
+    padding-inline: 5px;
+}
+
+.drawer-view-certificate {
+    background-color: #ffffff;
+    border: 1px solid #0c426f;
+    border-radius: 3px;
+    color: #0c426f;
+}
+
+.drawer-download-certificate {
+    background: #0c426f;
+    color: #ffffff;
+    border: 0px;
+}
+
+.certificate-icons {
+    width: 15px;
+    height: 15px;
+}
+
+.drawer-view-certificate:hover {
+    cursor: pointer;
+    background-color: #0c426f;
+    color: #e6e6e6;
+}
+
+.drawer-download-certificate:hover {
+    cursor: pointer;
+    background-color: #061e32;
+    color: #e6e6e6;
+}
+
+/*
+.certificate-pdf-button {
+    padding: 5px;
+    border: 1px solid #0c426f;
+    border-radius: 5px;
+    background-color: #ffffff;
+    color: #0c426f;
+}
+
+.certificate-pdf-button:hover {
+    cursor: pointer;
+    background-color: #0c426f;
+    color: #e6e6e6;
+}
+
+*/
 
 .drawer-close-button {
     width: 38px;
@@ -481,6 +528,10 @@
 .drawer-change-bar > span {
     color: #667085;
     font-size: 0.78rem;
+}
+
+.container-block {
+    margin-bottom: 10px;
 }
 
 .edit-button{

@@ -149,6 +149,12 @@
     text-align: center;
 }
 
+.request-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
 
 
 .filter-button:hover {
@@ -454,14 +460,10 @@
 }
 
 .request-status-badge {
-    display: inline-flex;
-    align-items: center;
-    min-height: 26px;
-    padding: 5px 9px;
+    padding: 5px;
     border-radius: 5px;
-    font-size: 0.76rem;
     font-weight: 650;
-    text-transform: capitalize;
+    font-size: 0.76rem;
 }
 
 .submitted-status,

@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import jm.gov.jca.transshipment_api.audit.AuditAction;
 import jm.gov.jca.transshipment_api.audit.AuditLogService;
+import jm.gov.jca.transshipment_api.transshipment_certificate.CertificateService;
 import jm.gov.jca.transshipment_api.transshipment_request.dto.ContainerDetailsRequest;
 import jm.gov.jca.transshipment_api.transshipment_request.dto.ContainerDetailsResponse;
 import jm.gov.jca.transshipment_api.user.UserRepository;
@@ -29,6 +30,7 @@ public class TransshipmentService {
     private final ContainerDetailsRepository containerDetailsRepository;
     private final ContainerMapper containerMapper;
     private final AuditLogService auditLogService;
+    private final CertificateService certificateService;
 
     public TransshipmentService(
             TransshipmentRequestRepository transshipmentRequestRepository,
@@ -36,7 +38,8 @@ public class TransshipmentService {
             UserRepository userRepository,
             ContainerDetailsRepository containerDetailsRepository,
             ContainerMapper containerMapper,
-            AuditLogService auditLogService
+            AuditLogService auditLogService,
+            CertificateService certificateService
         ) {
         this.transshipmentRequestRepository = transshipmentRequestRepository;
         this.requestMapper = requestMapper;
@@ -44,6 +47,7 @@ public class TransshipmentService {
         this.containerDetailsRepository = containerDetailsRepository;
         this.containerMapper = containerMapper;
         this.auditLogService = auditLogService;
+        this.certificateService = certificateService;
     }
 
     //create a response entity
@@ -81,8 +85,7 @@ public class TransshipmentService {
                 request.billOfLadingWaybill(),
                 request.rotationCallReference(),
                 request.remarksInstructions(),
-                request.reviewComments(),
-                request.pdfCertificatePath()
+                request.reviewComments()
         );
 
         // Audit log capture
@@ -200,17 +203,18 @@ public class TransshipmentService {
         // temp
         System.out.println("NEW STATUS: " + newStatus);
 
-        transshipmentRequestRepository.save(thisRequest);
+       TransshipmentRequest savedRequest = transshipmentRequestRepository.save(thisRequest);
 
-        
         if (request.containers() != null) {
                 updateContainers(thisRequest, request.containers());
         }
 
-        if (previousStatus != newStatus) {
+        // Audit log
+        if (previousStatus != newStatus) {       
                 AuditAction auditAction = null;
-
+                
                 if (newStatus == RequestStatus.APPROVED) {
+                        certificateService.generateCertificate(savedRequest); // PDF certificate generation
                         auditAction = AuditAction.REQUEST_APPROVED;
 
                 } else if (newStatus == RequestStatus.REJECTED) {
@@ -220,7 +224,7 @@ public class TransshipmentService {
                         auditAction = AuditAction.REQUEST_RESUBMITTED;
                 }
 
-                // Audit log
+                
                 if (auditAction != null) {         
                         auditLogService.recordTransshipmentRequestAction(
                                 thisRequest.getRequestId(),

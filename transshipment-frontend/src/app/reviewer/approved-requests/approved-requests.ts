@@ -25,10 +25,10 @@ export type ReviewQueueStatusFilter = 'ALL' | 'SUBMITTED' | 'UNDER_REVIEW' | 'RE
     NgxDatatableModule,
     DatePipe
   ],
-  templateUrl: './review-queue.html',
-  styleUrl: './review-queue.css',
+  templateUrl: './approved-requests.html',
+  styleUrl: './approved-requests.css',
 })
-export class ReviewQueue {
+export class ApprovedRequests {
   private readonly formbuilder = inject(FormBuilder);
   private readonly requestService = inject(RequestService);
   private readonly route = inject(ActivatedRoute);
@@ -45,7 +45,7 @@ export class ReviewQueue {
   successMessage ="";
 
   readonly isFilterOpen = signal(false);
-  readonly statusFilter = signal<ReviewQueueStatusFilter>("ALL");
+  readonly statusFilter = signal("APPROVED");
   readonly dateFrom = signal("");
   readonly dateTo = signal("");
 
@@ -60,7 +60,7 @@ export class ReviewQueue {
         })
       ).subscribe({
         next: data => {
-          const reviewableStatuses: RequestStatus[] = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'];
+          const reviewableStatuses: RequestStatus[] = ['APPROVED'];
           const reviewable = data.filter(request => reviewableStatuses.includes(request.status));
           this.requests.set(reviewable);
         },
@@ -106,17 +106,14 @@ export class ReviewQueue {
       data: request
     });
 
-    dialogRef.closed.subscribe((updatedRequest) => {
-      if (updatedRequest) {
-        this.requests.update(current => 
-          current.map(request => 
-            request.requestId === updatedRequest.requestId
-              ? updatedRequest
-              : request
-          )
-        )
+    dialogRef.closed.subscribe((decidedRequest) => {
+      if (decidedRequest) {
+        this.requests.update(current =>
+          current.filter(r => r.requestId !== decidedRequest.requestId)
+        );
+        this.closeRequestDetails();
       }
-    })
+    });
   }
 
   readonly filteredRequests = computed(() => {
@@ -126,7 +123,7 @@ export class ReviewQueue {
     const toDate = this.dateTo();
 
     return this.requests().filter(request => {
-      const matchesStatus = status === "ALL" || request.status === status;
+      const matchesStatus = status === "APPROVED";
 
       if (!matchesStatus) {
         return false;
@@ -164,18 +161,4 @@ export class ReviewQueue {
       );
     });
   });
-
-  getStatusLabel(status: RequestStatus): string {
-    switch (status) {
-      case "SUBMITTED": return "Submitted";
-      case "UNDER_REVIEW": return "Under Review";
-      case "APPROVED": return "Approved";
-      case "REJECTED": return "Rejected";
-      case "RESUBMITTED": return "Resubmitted";
-    }
-}
-
-
-
-
 }

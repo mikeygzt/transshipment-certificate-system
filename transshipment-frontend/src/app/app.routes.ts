@@ -8,6 +8,8 @@ import { UserGovernance } from './admin/user-governance/user-governance';
 import { roleGuard } from './auth/role.guard';
 import { guestGuard } from './auth/guest.guard';
 import { AuditLogs } from './admin/audit-logs/audit-logs';
+import { ArchivedApplications } from './requester/archived-applications/archived-applications';
+import { ApprovedRequests } from './reviewer/approved-requests/approved-requests';
 
 export const routes: Routes = [
     {
@@ -29,9 +31,20 @@ export const routes: Routes = [
         path: "my-applications",
         component: MyApplications,
         canActivate: [roleGuard(["REQUESTER"])]
-    }, {
+    },
+    {
+        path: "archived-applications",
+        component: ArchivedApplications,
+        canActivate: [roleGuard(["REQUESTER"])]
+    },
+    {
         path: "review-queue",
         component: ReviewQueue,
+        canActivate: [roleGuard(["REVIEWER"])]
+    },
+    {
+        path: "approved-requests",
+        component: ApprovedRequests,
         canActivate: [roleGuard(["REVIEWER"])]
     },
     {

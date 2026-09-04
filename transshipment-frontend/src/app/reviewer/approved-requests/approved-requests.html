@@ -3,9 +3,9 @@
     <section class="request-page">
         <header class="page-header">
             <div>
-                <h1>Review Queue</h1>
+                <h1>Approved Requests</h1>
                 
-                <p>Approve or Reject Requests.</p>
+                <p>Manage all approved requests.</p>
             </div>
         </header>
     </section>
@@ -43,21 +43,6 @@
                 @if (isFilterOpen()) {
                     <div class="filter-menu">
                         <div class="filter-field">
-                            <label for="statusFilter">Status</label>
-
-                            <select
-                                id="statusFilter"
-                                [value]="statusFilter()"
-                                (change)="statusFilter.set($any($event.target).value)"
-                            >
-                                <option value="ALL">All statuses</option>
-                                <option value="SUBMITTED">Submitted</option>
-                                <option value="UNDER_REVIEW">Under Review</option>
-                                <option value="RESUBMITTED">Resubmitted</option>
-                            </select>
-                        </div>
-
-                        <div class="filter-field">
                             <label for="dateFrom">Created from</label>
 
                             <input
@@ -69,7 +54,7 @@
                         </div>
 
                         <div class="filter-field">
-                            <label for="dateTo">To</label>
+                            <label for="dateTo">Created to</label>
 
                             <input
                                 id="dateTo"
@@ -170,17 +155,11 @@
                     >
                         <span
                             class="request-status-badge"
-                            [class.submitted-status]="row.status === 'SUBMITTED'"
-                            [class.under-review-status]="row.status === 'UNDER_REVIEW'"
                             [class.approved-status]="row.status === 'APPROVED'"
-                            [class.rejected-status]="row.status === 'REJECTED'"
-                            [class.resubmitted-status]="row.status === 'RESUBMITTED'"
-                        
                         >
-                            {{ getStatusLabel(row.status) ?? "-" }}
+                            {{ row.status === "APPROVED" ? "Approved" : "-" }}
                         </span>
                     </ng-template>
-                    
                 </ngx-datatable-column>
 
             </ngx-datatable>
@@ -188,7 +167,7 @@
     } @else {
         <div
         class="no-requests">
-        <h3>There are currently no requests that need review.</h3>
+        <h3>There are currently no approved requests.</h3>
         </div>
     }
 </app-dashboard-layout>

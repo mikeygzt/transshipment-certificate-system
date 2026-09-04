@@ -7,16 +7,30 @@ import { TransshipmentResponse, RequestStatus } from '../../transhipmentrequest.
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
 import { AuthenticatedUser } from '../../auth.models';
-import { LucideListFilter, LucidePlus, LucideSearch, LucideTrash, LucideX } from '@lucide/angular';
+import { LucideDownload, LucideEye, LucideListFilter, LucidePlus, LucideSearch, LucideTrash, LucideX } from '@lucide/angular';
 import { finalize } from 'rxjs';
 import { Dialog } from '@angular/cdk/dialog';
 import { Modal } from '../../modal/modal';
 import { Modaledit } from '../../modaledit/modaledit';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
+import { DatePipe } from '@angular/common';
+import { CertificateService } from '../../certificate.service';
 
 
 @Component({
   selector: 'app-my-applications',
-  imports: [DashboardLayout, ReactiveFormsModule, LucideListFilter, LucideSearch, LucidePlus, LucideX, LucideTrash],
+  imports: [
+    DashboardLayout,
+    NgxDatatableModule,
+    ReactiveFormsModule,
+    DatePipe,
+    LucideListFilter, 
+    LucideSearch, 
+    LucidePlus, 
+    LucideX, 
+    LucideEye,
+    LucideDownload
+  ],
   templateUrl: './my-applications.html',
   styleUrl: './my-applications.css',
 })
@@ -31,6 +45,7 @@ export class MyApplications {
   readonly search = signal("");
   readonly currentResponse = signal<TransshipmentResponse|null>(null);
   readonly selectedRequest = signal<TransshipmentResponse | null>(null);
+  readonly certificateService = inject(CertificateService);
 
   //applications: TransshipmentResponse[] = [];
 
@@ -95,6 +110,12 @@ export class MyApplications {
 
   clearFilters(): void {
     this.statusFilter.set("ALL");
+  }
+
+  onTableActivate(event: any): void {
+    if (event.type === "click" && event.row) {
+      this.openRequestDetails(event.row);
+    }
   }
 
   openRequestDetails(request: TransshipmentResponse): void {
@@ -189,24 +210,6 @@ export class MyApplications {
       });
   }
 
-  //Formats an ISO timestamp as DD, MM, YYYY HH:MM
-  formatCreatedAt(createdAt: string): string {
-    const date = new Date(createdAt);
-
-    if (isNaN(date.getTime())) {
-      return createdAt;
-    }
-
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-
-    return `${day}/${month}/${year}`;
-  }
-
-
   readonly filteredRequests = computed(() => {
     const query = this.search().trim().toLowerCase();
     const status = this.statusFilter();
@@ -235,17 +238,56 @@ export class MyApplications {
         requestType.toLowerCase().includes(query)
       );
     });
-  }
-);
+  });
 
   getStatusLabel(status: RequestStatus): string {
-      switch (status) {
-        case "SUBMITTED": return "Submitted";
-        case "UNDER_REVIEW": return "Under Review";
-        case "APPROVED": return "Approved";
-        case "REJECTED": return "Rejected";
-        case "RESUBMITTED": return "Resubmitted";
-      }
-}
+    switch (status) {
+      case "SUBMITTED": return "Submitted";
+      case "UNDER_REVIEW": return "Under Review";
+      case "APPROVED": return "Approved";
+      case "REJECTED": return "Rejected";
+      case "RESUBMITTED": return "Resubmitted";
+    }
+  }
+
+  viewCertificate(requestId: string) {
+    this.certificateService
+      .generateCertificatePdf(requestId)
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = URL.createObjectURL(blob);
+          window.open(url, "_blank");
+
+          setTimeout(() => {
+            URL.revokeObjectURL(url);
+          }, 1000);
+        },
+        error: (error) => {
+          console.error("Failed to load certificate:", error);
+        }
+      });
+  }
+
+  downloadCertificate(requestId: string) {
+    console.log("Download clicked: ", requestId);
+    this.certificateService
+      .generateCertificatePdf(requestId)
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = URL.createObjectURL(blob);
+
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `transshipment-certificate-${requestId}.pdf`;
+
+          link.click();
+
+          URL.revokeObjectURL(url);
+        },
+        error: (error) => {
+          console.error("Failed to download certificate:", error);
+        }
+      });
+  }
 
 }

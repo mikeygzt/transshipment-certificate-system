@@ -17,6 +17,14 @@
                                 ></svg>
                                 My Applications
                             </a>
+                            <a routerLink="/archived-applications" routerLinkActive="active">
+                                <svg
+                                    lucideArchive
+                                    class="nav-icon"
+                                    aria-hidden="true"
+                                ></svg>
+                                Archive
+                            </a>
                         }
 
                         @case ("REVIEWER") {
@@ -27,6 +35,14 @@
                                     aria-hidden="true"
                                 ></svg>
                                 Review Queue
+                            </a>
+                            <a routerLink="/approved-requests" routerLinkActive="active">
+                                <svg
+                                    lucideShieldCheck
+                                    class="nav-icon"
+                                    aria-hidden="true"
+                                ></svg>
+                                Approved Requests
                             </a>
                         }
 

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, Service } from '@angular/core';
 import { Observable, switchMap } from 'rxjs';
-import { TransshipmentResponse, Transshipmentrequest } from './transhipmentrequest.models';
+import { TransshipmentResponse, TransshipmentRequest } from './transhipmentrequest.models';
 
 @Injectable({
     providedIn: "root"
@@ -11,7 +11,7 @@ export class RequestService {
     private readonly http = inject(HttpClient);
     private readonly requestUrl = "api/transshipmentrequest";
 
-    new(request: Transshipmentrequest): Observable<TransshipmentResponse>{
+    new(request: TransshipmentRequest): Observable<TransshipmentResponse>{
         return this.withCsrf(()=>this.http.post<TransshipmentResponse>(`${this.requestUrl}/new`, request)); 
 
     }
@@ -29,7 +29,7 @@ export class RequestService {
         return this.withCsrf(() => this.http.get<TransshipmentResponse>(`${this.requestUrl}/${id}`));
     }
 
-    update(id: string, request: Transshipmentrequest): Observable<void>{
+    update(id: string, request: TransshipmentRequest): Observable<void>{
         return this.withCsrf(() => this.http.patch<void>(`${this.requestUrl}/update/${id}`, request));
     }
 
@@ -37,32 +37,17 @@ export class RequestService {
         return this.withCsrf(() => this.http.delete(`${this.requestUrl}/delete/${id}`));
     }
 
+    //using the helper function used in auth service
 
-
-
-    /* getCsrfToken(): Observable<unknown> {
-            return this.http.get(`${this.authUrl}/csrf`);
-        }
-    
-        register(request: RegisterRequest): Observable<UserResponse> {
-            return this.withCsrf(() => 
-             this.http.post<UserResponse>(
-                `${this.authUrl}/register`,
-                request
-                )
-            );
-        }*/
-       //using the helper function used in auth service
-
-       getCsrfToken(): Observable<unknown> {
-            return this.http.get(`/api/auth/csrf`);
-        }
-        // Helper function to fetch cookie so we're not repeating the same code for the requests
-        private withCsrf<T>(
-            request: () => Observable<T>
-        ): Observable<T> {
-            return this.getCsrfToken().pipe(
-                switchMap(() => request())
-            );
+    getCsrfToken(): Observable<unknown> {
+        return this.http.get(`/api/auth/csrf`);
+    }
+    // Helper function to fetch cookie so we're not repeating the same code for the requests
+    private withCsrf<T>(
+        request: () => Observable<T>
+    ): Observable<T> {
+        return this.getCsrfToken().pipe(
+            switchMap(() => request())
+        );
         }
 }

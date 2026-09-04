@@ -163,6 +163,7 @@ public class TransshipmentRequest {
     )
     private String remarksInstructions;
 
+    @Enumerated(EnumType.STRING)
     @Column(
         nullable = false,
         length = 50,
@@ -223,8 +224,7 @@ public class TransshipmentRequest {
     String billOfLadingWaybill,
     String rotationCallReference,
     String remarksInstructions,
-    String reviewComments,
-    String pdfCertificatePath
+    String reviewComments
 ) {
     this.requesterUserId = requesterUserId;
     this.shippingAgentName = shippingAgentName;
@@ -247,7 +247,6 @@ public class TransshipmentRequest {
     this.rotationCallReference = rotationCallReference;
     this.remarksInstructions = remarksInstructions;
     this.reviewComments = reviewComments;
-    this.pdfCertificatePath = pdfCertificatePath;
 }
 
 public UUID getRequestId() {
@@ -340,10 +339,6 @@ public RequestStatus getStatus() {
 
 public String getReviewComments() {
     return reviewComments;
-}
-
-public String getPdfCertificatePath() {
-    return pdfCertificatePath;
 }
 
 public Instant getCreatedAt() {
@@ -440,10 +435,6 @@ public void setRemarksInstructions(String remarksInstructions) {
 
 public void setReviewComments(String reviewComments) {
     this.reviewComments = reviewComments;
-}
-
-public void setPdfCertificatePath(String pdfCertificatePath) {
-    this.pdfCertificatePath = pdfCertificatePath;
 }
 
 }

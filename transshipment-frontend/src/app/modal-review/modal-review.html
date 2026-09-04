@@ -187,7 +187,7 @@
                         formControlName="decision"
                         value="APPROVED"
                         (change)="onDecisionChange()">
-                    <span>Accept</span>
+                    <span>Approve</span>
                 </label>
 
                 <label class="decision-radio">
@@ -200,11 +200,7 @@
                 </label>
             </div>
 
-            @if (decisionForm.controls.decision.touched && decisionForm.controls.decision.invalid) {
-                <p class="field-error">Please select Accept or Reject.</p>
-            }
-
-            <div class="form-group" id="remarks">
+            <div class="form-group-review-comments" id="remarks">
                 <label for="reviewComments">
                     Review Comments
                     @if (isRejectSelected) {
@@ -215,25 +211,27 @@
                     id="reviewComments"
                     type="text"
                     formControlName="reviewComments"
-                    placeholder="Add any comments for the applicant"
-                    rows="4"
-                    style="resize: none;"></textarea>
-
+                    placeholder="Add comments for the applicant"
+                    rows="2"
+                    style="resize: none; font-size: 0.85rem;">
+                </textarea>
+                
                 @if (decisionForm.controls.reviewComments.touched && decisionForm.controls.reviewComments.invalid) {
-                    <p class="field-error">Review comments are required when rejecting a request.</p>
+                <p class="field-error">Review comments are required when rejecting a request.</p>
                 }
+
+                @if (decisionForm.controls.decision.touched && decisionForm.controls.decision.invalid) {
+                <p class="field-error">Please select Approve or Reject.</p>
+            }
             </div>
 
             @if (errorMessage) {
                 <p class="form-error">{{ errorMessage }}</p>
             }
 
-            <div class="save-submit">
-                <button class="primary-button" type="submit" [disabled]="isSubmitting">
-                    {{ isSubmitting ? "Submitting..." : "Submit Decision" }}
-                </button>
-            </div>
-
+            <button class="submit-decision primary-button" type="submit" [disabled]="isSubmitting">
+                {{ isSubmitting ? "Submitting..." : "Submit Decision" }}
+            </button>
         </form>
     </div>
 </main>

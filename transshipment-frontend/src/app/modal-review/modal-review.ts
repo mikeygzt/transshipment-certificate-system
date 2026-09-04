@@ -4,7 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RequestService } from '../transshipmentrequest.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
-import { Transshipmentrequest, TransshipmentResponse, RequestStatus } from '../transhipmentrequest.models';
+import { TransshipmentRequest, TransshipmentResponse, RequestStatus } from '../transhipmentrequest.models';
 
 @Component({
   selector: 'app-modal-review',
@@ -20,7 +20,7 @@ export class ModalReview {
   private readonly dialogRef = inject(DialogRef<TransshipmentResponse, ModalReview>);
 
   private existingRequest = this.dialogData;
-
+  
   isSubmitting = false;
   errorMessage = "";
 
@@ -76,7 +76,7 @@ export class ModalReview {
     }
   }
 
-  private toTransshipmentrequest(source: TransshipmentResponse, status: RequestStatus): Transshipmentrequest {
+  private toTransshipmentrequest(source: TransshipmentResponse, status: RequestStatus): TransshipmentRequest {
     return {
       requestId: source.requestId,
       requesterUserId: source.requesterUserId,
@@ -157,6 +157,22 @@ export class ModalReview {
   }
 
   close(): void {
+    
+    if (this.existingRequest.status == 'UNDER_REVIEW') {
+      const underReviewRequest = this.toTransshipmentrequest(this.existingRequest, 'SUBMITTED');
+      
+      this.requestService.update(this.existingRequest.requestId, underReviewRequest).subscribe({
+        next: () => {
+          this.existingRequest = { ...this.existingRequest, status: 'SUBMITTED' };
+          this.changeDetector.markForCheck();
+        },
+        error: () => {
+          this.errorMessage = "Could not mark this request as submitted.";
+          this.changeDetector.markForCheck();
+        }
+      });
+    }
+
     this.dialogRef.close();
   }
 }
