@@ -59,13 +59,4 @@ export class UserGovernanceService {
                 ))
         )
     }
-
-    deleteUser(userId: string): Observable<UserResponse> {
-        return this.authService.getCsrfToken().pipe(
-            switchMap(() => 
-                this.http.delete<UserResponse>(
-                    `/api/admin/users/${userId}`, {}
-                ))
-        )
-    }
 }

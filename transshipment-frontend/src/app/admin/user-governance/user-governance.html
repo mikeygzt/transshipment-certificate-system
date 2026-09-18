@@ -498,13 +498,6 @@
                                 Deactivate account
                             </button>
                         }
-
-                        <button
-                            type="button"
-                            class="delete-button"
-                            (click)="openDeleteConfirmation()">
-                            Delete account
-                        </button>
                     </section>
                 </div>
 
@@ -597,32 +590,6 @@
                                 class="confirm-activate-button"
                                 (click)="activateSelectedUser()">
                                 {{ isActivating() ? "Activating..." : "Activate" }}
-                            </button>
-                        </div>
-                    </div>
-                }
-
-                @if (showDeleteConfirmation()) {
-                      <div class="danger-zone-confirmation">
-                        <div>
-                            <strong class="deactivate-confirmation-strong">Delete this account</strong>
-
-                            <p>{{ user.fullName }}'s account will be permanently deleted.</p>
-                        </div>
-
-                        <div class="confirmation-actions">
-                            <button
-                                type="button"
-                                class="cancel-button"
-                                (click)="cancelDelete()">
-                                Cancel
-                            </button>
-
-                            <button
-                                type="button"
-                                class="confirm-deactivate-button"
-                                (click)="deleteSelectedUser()">
-                                {{ isDeleting() ? "Deleting..." : "Delete"}}
                             </button>
                         </div>
                     </div>

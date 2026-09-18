@@ -1,39 +1,44 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DashboardLayout } from '../../shared/dashboard-layout/dashboard-layout';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
 import { RequestService } from '../../transshipmentrequest.service';
 import { TransshipmentResponse, TransshipmentRequest, RequestStatus } from '../../transhipmentrequest.models';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
 import { AuthenticatedUser } from '../../auth.models';
-import { LucideListFilter, LucideSearch, LucideX } from '@lucide/angular';
+import { LucideDownload, LucideEye, LucideListFilter, LucideSearch, LucideSquareKanban, LucideChevronRight } from '@lucide/angular';
 import { finalize } from 'rxjs';
 import { Dialog } from '@angular/cdk/dialog';
 import { ModalReview } from '../../modal-review/modal-review';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { DatePipe } from '@angular/common';
+import { CertificateService } from '../../certificate.service';
+import { RouterLink } from '@angular/router';
 
-export type ReviewQueueStatusFilter = 'ALL' | 'SUBMITTED' | 'UNDER_REVIEW' | 'RESUBMITTED';
+export type ReviewQueueStatusFilter = "ALL" | "SUBMITTED" | "UNDER_REVIEW" | "RESUBMITTED";
 
 @Component({
   selector: 'app-review-queue',
-  imports: [DashboardLayout, 
-    ReactiveFormsModule, 
-    LucideListFilter, 
+  imports: [DashboardLayout,
+    ReactiveFormsModule,
+    LucideListFilter,
     LucideSearch,
+    LucideEye,
+    LucideDownload,
+    LucideSquareKanban,
     NgxDatatableModule,
-    DatePipe
+    DatePipe,
+    RouterLink, 
+    LucideChevronRight
   ],
   templateUrl: './approved-requests.html',
   styleUrl: './approved-requests.css',
 })
 export class ApprovedRequests {
-  private readonly formbuilder = inject(FormBuilder);
   private readonly requestService = inject(RequestService);
-  private readonly route = inject(ActivatedRoute);
-  private readonly authService = inject(AuthService);
+  private readonly certificateService = inject(CertificateService);
   private readonly dialog = inject(Dialog);
+
   readonly currentUser = signal<AuthenticatedUser | null>(null);
   readonly requests = signal<TransshipmentResponse[]>([]);
   readonly search = signal("");
@@ -48,6 +53,13 @@ export class ApprovedRequests {
   readonly statusFilter = signal("APPROVED");
   readonly dateFrom = signal("");
   readonly dateTo = signal("");
+
+  readonly tableSorts = [
+    {
+      prop: 'createdAt',
+      dir: 'desc' as const
+    }
+  ]
 
   constructor() {
     this.loadRequests();
@@ -95,7 +107,7 @@ export class ApprovedRequests {
 
   onTableActivate(event: any): void {
     if (event.type === "click" && event.row) {
-      this.openReviewModal(event.row);
+      this.selectedRequest.set(event.row);
     }
   }
 
@@ -161,4 +173,55 @@ export class ApprovedRequests {
       );
     });
   });
+
+  
+  getStatusLabel(status: RequestStatus): string {
+    switch (status) {
+      case "SUBMITTED": return "Submitted";
+      case "UNDER_REVIEW": return "Under Review";
+      case "APPROVED": return "Approved";
+      case "REJECTED": return "Rejected";
+      case "RESUBMITTED": return "Resubmitted";
+    }
+  }
+
+  viewCertificate(requestId: string) {
+    this.certificateService
+      .generateCertificatePdf(requestId)
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = URL.createObjectURL(blob);
+          window.open(url, "_blank");
+
+          setTimeout(() => {
+            URL.revokeObjectURL(url);
+          }, 1000);
+        },
+        error: (error) => {
+          console.error("Failed to load certificate:", error);
+        }
+      });
+  }
+
+  downloadCertificate(requestId: string) {
+    console.log("Download clicked: ", requestId);
+    this.certificateService
+      .generateCertificatePdf(requestId)
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = URL.createObjectURL(blob);
+
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `transshipment-certificate-${requestId}.pdf`;
+
+          link.click();
+
+          URL.revokeObjectURL(url);
+        },
+        error: (error) => {
+          console.error("Failed to download certificate:", error);
+        }
+      });
+  }
 }

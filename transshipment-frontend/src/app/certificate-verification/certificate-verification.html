@@ -1,0 +1,266 @@
+<main class="verification-page">
+    <section
+    class="verification-modal"
+    aria-labelledby="verification-title"
+    >
+        <header class="verification-header">
+            <img
+                src="/images/jca-logo.png"
+                alt="Jamaica Customs Agency"
+                class="agency-logo"
+            />
+
+            <p>Jamaica Customs Agency</p>
+        </header>
+
+        @if (isLoading()) {
+
+            <div class="verification-content">
+                <div class="loading-spinner"></div>
+
+                <h1 id="verification-title">
+                    Verifying Certificate
+                </h1>
+
+                <p class="description">
+                    Please wait while the certificate is checked
+                    against Jamaica Customs Agency records.
+                </p>
+            </div>
+
+        } @else if (errorMessage()) {
+
+            <div class="verification-content">
+
+                <svg
+                    lucideCircleX
+                    class="status-icon invalid-icon"
+                    aria-hidden="true"
+                ></svg>
+
+                <h1 id="verification-title">
+                    Certificate Not Verified
+                </h1>
+
+                <p class="description">
+                    {{ errorMessage() }}
+                </p>
+
+                <div class="notice-box">
+                    Please confirm that the certificate number or QR code
+                    is correct.
+                </div>
+
+            </div>
+
+            
+            <div class="portal-link-div">
+                <a routerLink="/my-applications" class="portal-link">
+                    Continue to Portal
+                    <svg
+                        lucideChevronRight
+                        class="portal-link-icon"
+                        aria-hidden="true"
+                    ></svg>
+                </a>
+            </div>
+           
+            <div>
+                <a routerLink="/verify-certificate" class="search-link">
+                    <svg
+                        lucideSearch
+                        class="search-icon"
+                        aria-hidden="true"
+                    ></svg>
+                    Search other certificates
+                </a>
+            </div>
+            
+        } @else if (verification(); as certificate) {
+
+            <div class="verification-content">
+
+                @if (isValid()) {
+
+                    <svg
+                        lucideCircleCheckBig
+                        class="status-icon valid-icon"
+                        aria-hidden="true"
+                    ></svg>
+
+                    <h1 id="verification-title">
+                        Certificate Verified
+                    </h1>
+
+                    <p class="description">
+                        This certificate was successfully by the
+                        JCA Transshipment Certificate System.
+                    </p>
+
+                } @else {
+
+                    <svg
+                        lucideCircleX
+                        class="status-icon invalid-icon"
+                        aria-hidden="true"
+                    ></svg>
+
+                    <h1 id="verification-title">
+                        Certificate Invalid
+                    </h1>
+
+                    <p class="description">
+                        This certificate is not currently valid.
+                    </p>
+
+                }
+
+                <div>
+                    <button
+                            type="button"
+                            class="view-certificate"
+                            (click)="viewVerifiedCertificatePdf()"
+                        >
+                            <svg
+                                lucideExternalLink
+                                class="view-certificate-icon"
+                                aria-hidden="true"
+                            ></svg>
+                            View Certificate
+    
+                        </button>
+                </div>
+
+                <div class="certificate-details">
+
+                    <div class="detail-row">
+                        <span class="detail-label">
+                            Certificate Number
+                        </span>
+
+                        <strong class="detail-value">
+                            {{ certificate.controlNumber }}
+                        </strong>
+                    </div>
+
+                    <div class="detail-row">
+                        <span class="detail-label">
+                        Issue Date
+                        </span>
+
+                        <strong class="detail-value">
+                        {{ certificate.issuedAt | date:'dd MMM yyyy' }}
+                        </strong>
+                    </div>
+
+                    <div class="detail-row">
+                        <span class="detail-label">
+                            Verification Status
+                        </span>
+
+                        <span
+                            class="status-badge"
+                            [class.status-valid]="isValid()"
+                            [class.status-invalid]="!isValid()"
+                        >
+                            {{ certificate.status }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="verification-notice">
+                    <strong>Certificate verification complete</strong>
+
+                    <p>
+                        Certificate information should be confirmed through
+                        official Jamaica Customs Agency channels.
+                        <span class="learn-more">
+                            <a
+                                href="https://jca.gov.jm/contact-us/"
+                                target="_blank"
+                            >
+                                Learn more.
+                            </a>
+                        </span>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="portal-link-div">
+                <a routerLink="/my-applications" class="portal-link">
+                    Continue to Portal
+                    <svg
+                        lucideChevronRight
+                        class="portal-link-icon"
+                        aria-hidden="true"
+                    ></svg>
+                </a>
+            </div>
+
+            <div>
+                <a routerLink="/verify-certificate" class="search-link">
+                    <svg
+                        lucideSearch
+                        class="search-icon"
+                        aria-hidden="true"
+                    ></svg>
+                    Search other certificates
+                </a>
+            </div>
+        }
+
+        @if (!routeControlNumber()) {
+            <div class="manual-verification">
+                <h1>Verify Certificate</h1>
+
+                <form
+                    class="verification-form"
+                    [formGroup]="verificationForm"
+                    (ngSubmit)="verifyManually()"
+                >
+                    <label for="verificationCode">Enter certificate code</label>
+
+                    <input 
+                        type="text"
+                        placeholder="JCA-TSC-2026-000123"
+                        [formControl]="manualControlNumber"
+                    />
+
+                    @if (manualControlNumber.touched &&
+                        manualControlNumber.hasError("required")
+                    ) {
+                        <p class="error-message">
+                            A certificate number is required.
+                        </p>
+                    }
+
+                    @if (manualControlNumber.touched &&
+                        manualControlNumber.hasError("pattern")
+                    ) {
+                        <p class="error-message">
+                            Please enter a valid certificate number.
+                        </p>
+                    }              
+                    <button
+                        class="verify-button"
+                        type="submit"
+                    >
+                        {{ isSubmitting ? "Verifying..." : "Verify Certificate" }}
+                    </button>
+                </form>
+            </div>
+        }
+
+
+        <footer class="verification-footer">
+            <p>
+                Jamaica Customs Agency
+            </p>
+
+            <span>
+                Transshipment Certificate Verification
+            </span>
+        </footer>
+
+    </section>
+</main>

@@ -214,3 +214,16 @@ label{
     min-height: 0;
     accent-color: #0c426f;
 }
+
+.claim-error-message {
+    display: flex;
+    align-items: center;
+    margin-block: 10px;
+    margin-inline: 50px;
+    border: 1px solid #b8a659;
+    border-radius: 3px;
+    background-color: #fcf7d1;
+    color: #5f552c;
+    padding: 10px;
+    gap: 15px;
+}

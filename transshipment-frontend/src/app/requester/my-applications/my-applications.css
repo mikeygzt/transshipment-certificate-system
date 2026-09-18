@@ -27,22 +27,6 @@
     line-height: 1.5;
 }
 
-.no-requests{
-    display: grid;
-    /*align-items: center;*/
-    /*justify-content: center;*/
-    place-items: center;
-    border-width: 1px;
-    border-style: dashed;
-    border-color: #667085;
-    border-radius: 10px;
-    width: 100%;
-    margin-top: 10%;
-    margin-bottom: 10%;
-    padding: 5%;
-    
-
-}
 .new-request{
     min-height: 45px;
     width: 30%;
@@ -254,7 +238,7 @@
 }
 
 .table-container {
-    margin-top: 10px;
+    margin-top: 30px;
 }
 
 .request-status-badge {
@@ -297,6 +281,74 @@
     cursor: pointer;
     background-color: #0c426f;
     color: #e6e6e6;
+}
+
+.no-requests-icon-div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #e5f1fd;
+    border-radius: 50%;
+    height: 35px;
+    width: 35px;
+}
+
+.no-requests-icon {
+    width: 18px;
+    height: 18px;
+    color: #3b88da;
+}
+
+.no-requests{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    height: 50%;
+    border: 1px solid #d4d4d4;
+    border-radius: 10px;
+}
+
+.no-requests h3 {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+.no-requests p {
+    font-size: 0.65rem;
+    margin: 0;
+    color: #666666;
+}
+
+.no-requests-new {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px;
+    margin-top: 5px;
+    font: inherit;
+    font-size: 0.75rem;
+
+    background-color: #ffffff;
+    border: 1px solid #1665c6;
+    border-radius: 30px;
+    padding: 5px;
+    padding-inline: 15px;
+    gap: 3px;
+    text-decoration: none;
+    color: #1665c6;
+}
+
+.no-requests-new-icon {
+    width: 15px;
+    height: 15px;
+}
+
+.no-requests-new:hover {
+    cursor: pointer;
+    background-color: #edf5ff;
 }
 
 .details-drawer {

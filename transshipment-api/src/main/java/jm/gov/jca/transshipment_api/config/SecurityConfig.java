@@ -72,6 +72,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**")
                         .hasRole("ADMIN")
 
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/certificates/verify/**"
+                        ).permitAll()
+
                         .requestMatchers("/api/**")
                         .authenticated()
 

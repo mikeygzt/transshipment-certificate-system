@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, Service } from '@angular/core';
 import { Observable, switchMap } from 'rxjs';
 import { TransshipmentResponse, TransshipmentRequest } from './transhipmentrequest.models';
+import { AuthService } from './auth/auth.service';
 
 @Injectable({
     providedIn: "root"
@@ -9,6 +10,7 @@ import { TransshipmentResponse, TransshipmentRequest } from './transhipmentreque
 //@Service()
 export class RequestService {
     private readonly http = inject(HttpClient);
+    private readonly authService = inject(AuthService);
     private readonly requestUrl = "api/transshipmentrequest";
 
     new(request: TransshipmentRequest): Observable<TransshipmentResponse>{
@@ -33,12 +35,34 @@ export class RequestService {
         return this.withCsrf(() => this.http.patch<void>(`${this.requestUrl}/update/${id}`, request));
     }
 
-    delete(id: string): Observable<unknown>{
-        return this.withCsrf(() => this.http.delete(`${this.requestUrl}/delete/${id}`));
+    // SSE related methods (claim & release)
+    claim(requestId: string) {
+        return this.withCsrf(() =>
+            this.http.patch<void>(
+                `${this.requestUrl}/${requestId}/claim`,
+                {}
+        ));
+    }
+
+    release(requestId: string) {
+        return this.withCsrf(() => 
+            this.http.patch<void>(
+                `${this.requestUrl}/${requestId}/release`,
+                {}
+            )
+        )
+    }
+
+    heartbeat(requestId: string) {
+        return this.withCsrf(() => 
+            this.http.patch<void>(
+                `${this.requestUrl}/${requestId}/heartbeat`,
+                {}
+            )
+        )
     }
 
     //using the helper function used in auth service
-
     getCsrfToken(): Observable<unknown> {
         return this.http.get(`/api/auth/csrf`);
     }

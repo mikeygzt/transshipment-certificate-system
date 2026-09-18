@@ -5,7 +5,7 @@
             <div>
                 <h1>Review Queue</h1>
                 
-                <p>Approve or Reject Requests.</p>
+                <p>Approve, reject, and manage requests.</p>
             </div>
         </header>
     </section>
@@ -54,6 +54,23 @@
                                 <option value="SUBMITTED">Submitted</option>
                                 <option value="UNDER_REVIEW">Under Review</option>
                                 <option value="RESUBMITTED">Resubmitted</option>
+                                <option value="REJECTED">Rejected</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-field">
+                            <label for="statusFilter">Request Type</label>
+
+                            <select
+                                id="statusFilter"
+                                [value]="statusFilter()"
+                                (change)="statusFilter.set($any($event.target).value)"
+                            >
+                                <option value="ALL">All requests</option>
+                                <option value="SUBMITTED">Submitted</option>
+                                <option value="UNDER_REVIEW">Under Review</option>
+                                <option value="RESUBMITTED">Resubmitted</option>
+                                <option value="REJECTED">Rejected</option>
                             </select>
                         </div>
 
@@ -97,6 +114,8 @@
                 [footerHeight]="50"
                 [rowHeight]="50"
                 [limit]="10"
+                [scrollbarH]="true"
+                [sorts]="tableSorts"
                 (activate)="onTableActivate($event)"
             >
                 <ngx-datatable-column
@@ -186,9 +205,16 @@
             </ngx-datatable>
         </div>
     } @else {
-        <div
-        class="no-requests">
-        <h3>There are currently no requests that need review.</h3>
+        <div class="no-requests">
+            <div class="no-requests-icon-div">
+                <svg
+                    lucideFile
+                    class="no-requests-icon"
+                    aria-hidden="true"
+                    ></svg>
+            </div>
+            <h3>No requests to be reivewed yet</h3>
+            <p>Requests submitted by applicants will be displayed here.</p>
         </div>
     }
 </app-dashboard-layout>

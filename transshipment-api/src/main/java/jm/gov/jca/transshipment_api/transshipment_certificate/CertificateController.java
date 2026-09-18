@@ -46,4 +46,39 @@ public class CertificateController {
                 .body(pdf);
     
     }
+
+    @GetMapping("/verify/{controlNumber}")
+    public CertificateVerificationResponse verifyController(
+        @PathVariable String controlNumber
+    ) {
+        return certificateService.verifyCertificate(controlNumber);
+    }
+
+    @GetMapping("/verify/{controlNumber}/pdf")
+    public ResponseEntity<byte[]> viewVerifiedCertificate(
+        @PathVariable String controlNumber
+    ) {
+        TransshipmentCertificate certificate = 
+            certificateService.getCertificateByControlNumber(controlNumber);
+
+        byte[] pdf = certificateService
+            .getCertificatePdfByControlNumber(controlNumber);
+        
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.setContentType(MediaType.APPLICATION_PDF);
+
+        headers.setContentDisposition(
+            ContentDisposition.inline()
+                .filename(
+                    certificate.getControlNumber()
+                )
+                .build()
+        );
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .body(pdf);
+    }
 }

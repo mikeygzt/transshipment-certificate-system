@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { DashboardLayout } from '../../shared/dashboard-layout/dashboard-layout';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -7,14 +7,16 @@ import { TransshipmentResponse, TransshipmentRequest, RequestStatus } from '../.
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
 import { AuthenticatedUser } from '../../auth.models';
-import { LucideListFilter, LucideSearch, LucideX } from '@lucide/angular';
+import { LucideFile, LucideListFilter, LucideSearch, LucideSquareKanban, LucideX } from '@lucide/angular';
 import { finalize } from 'rxjs';
 import { Dialog } from '@angular/cdk/dialog';
 import { ModalReview } from '../../modal-review/modal-review';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { DatePipe } from '@angular/common';
+import { ReviewQueueEventService } from '../../review-queue-events.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-export type ReviewQueueStatusFilter = 'ALL' | 'SUBMITTED' | 'UNDER_REVIEW' | 'RESUBMITTED';
+export type ReviewQueueStatusFilter = 'ALL' | 'SUBMITTED' | 'UNDER_REVIEW' | 'RESUBMITTED' | 'REJECTED';
 
 @Component({
   selector: 'app-review-queue',
@@ -22,6 +24,7 @@ export type ReviewQueueStatusFilter = 'ALL' | 'SUBMITTED' | 'UNDER_REVIEW' | 'RE
     ReactiveFormsModule, 
     LucideListFilter, 
     LucideSearch,
+    LucideFile,
     NgxDatatableModule,
     DatePipe
   ],
@@ -34,6 +37,9 @@ export class ReviewQueue {
   private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
   private readonly dialog = inject(Dialog);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly reviewQueueEventService = inject(ReviewQueueEventService);
+
   readonly currentUser = signal<AuthenticatedUser | null>(null);
   readonly requests = signal<TransshipmentResponse[]>([]);
   readonly search = signal("");
@@ -49,8 +55,27 @@ export class ReviewQueue {
   readonly dateFrom = signal("");
   readonly dateTo = signal("");
 
+  readonly tableSorts = [
+    {
+      prop: 'createdAt',
+      dir: 'desc' as const
+    }
+  ]
+
   constructor() {
     this.loadRequests();
+    
+    // When the reviewer navigates away from the review queue page,
+    // the component is destroyed and the SSE connection is closed
+    this.reviewQueueEventService
+      .listenForQueueChange()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        console.log("Review queue changed. Reloading requests.")
+        this.loadRequests();
+      })
   }
 
   private loadRequests(): void{
@@ -60,11 +85,11 @@ export class ReviewQueue {
         })
       ).subscribe({
         next: data => {
-          const reviewableStatuses: RequestStatus[] = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'];
+          const reviewableStatuses: RequestStatus[] = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'REJECTED'];
           const reviewable = data.filter(request => reviewableStatuses.includes(request.status));
           this.requests.set(reviewable);
         },
-        error: (error:HttpErrorResponse) =>{
+        error: () => {
           this.errorMessage = "There was an error in loading the requests";
         }
       })
@@ -100,10 +125,10 @@ export class ReviewQueue {
   }
 
   //Opens the read-only review modal for the currently selected request, with the accept/reject decision panel.
-  //Note: ModalReview itself marks the request UNDER_REVIEW on open, so no status change happens here.
   openReviewModal(request: TransshipmentResponse): void {
     const dialogRef = this.dialog.open<TransshipmentResponse | undefined>(ModalReview, {
-      data: request
+      data: request,
+      disableClose: true
     });
 
     dialogRef.closed.subscribe((updatedRequest) => {
@@ -174,8 +199,4 @@ export class ReviewQueue {
       case "RESUBMITTED": return "Resubmitted";
     }
 }
-
-
-
-
 }

@@ -181,4 +181,46 @@ public class CertificateService {
 
         return weight.stripTrailingZeros().toPlainString() + "kg";
     }
+
+    @Transactional(readOnly = true)
+    public CertificateVerificationResponse verifyCertificate(String controlNumber){
+        TransshipmentCertificate certificate = certificateRepository
+            .findByControlNumber(controlNumber)
+            .orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, 
+                    "Certificate not found.")
+            );
+        
+        boolean valid = certificate.getRequest().getStatus() == RequestStatus.APPROVED;
+
+        return new CertificateVerificationResponse(
+            certificate.getControlNumber(),
+            valid ? "VALID" : "INVALID",
+            certificate.getGeneratedAt()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public TransshipmentCertificate getCertificateByControlNumber(String controlNumber) {
+        return certificateRepository
+            .findByControlNumber(controlNumber)
+            .orElseThrow(() -> 
+                new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Certificate not found.")
+            );
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] getCertificatePdfByControlNumber(String controlNumber) {
+        TransshipmentCertificate certificate = getCertificateByControlNumber(controlNumber);
+
+        if (certificate.getRequest().getStatus() != RequestStatus.APPROVED) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, 
+                "Certificate IS not valid.");
+        }
+
+        return certificateStorageService.load(certificate.getFileKey());
+    }
 }

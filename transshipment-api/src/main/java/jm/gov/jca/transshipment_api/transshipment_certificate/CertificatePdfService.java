@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
@@ -36,6 +37,9 @@ public class CertificatePdfService {
     }
 
     public String buildCertificateHtml(CertificateData data, byte[] qrCodePng) {
+        String logoBase64 = loadImageBase64("certificate/jca-logo.png");
+        String sealBase64 = loadImageBase64("certificate/jca-seal.png");
+
         String qrCodeBase64 = Base64.getEncoder().encodeToString(qrCodePng);
 
         String issueDate = data.issueDate()
@@ -96,11 +100,33 @@ public class CertificatePdfService {
                 color: #1f2937;
             }
 
+            .seal {
+                position: fixed;
+                top: 10%%;
+                left: 10%%;
+
+                width: 80%%;
+                height: 80%%;
+                
+                object-fit: contain;
+                z-index: 0;
+            }
+
+            .certificate-content {
+                position: relative;
+                z-index: 1;
+            }
+
             .header-table {
                 width: 100%%;
                 border-bottom: 3px solid #17365d;
                 padding-bottom: 12px;
                 margin-bottom: 28px;
+            }
+
+            .jca-logo {
+                width: 120px;
+                height: auto;
             }
 
             .header-table td {
@@ -228,163 +254,180 @@ public class CertificatePdfService {
         </head>
 
         <body>
-            <table class="header-table">
-            <tr>
-                <td style="width: 20%%;">JCA Seal</td>
+            <img 
+                class="seal"
+                src="data:image/png;base64,%s"
+                alt=""
+            />
 
-                <td class="agency-title" style="width: 55%%;">
-                <h1>Jamaica Customs Agency</h1>
-                <p>Transshipment Certificate - Containers Remaining Under Customs Control</p>
-                </td>
-
-                <td class="certificate-info" style="width: 25%%;">
-                <strong>Certificate No.</strong><br/>
-                %s
-                <br/><br/>
-
-                <strong>Issue Date</strong><br/>
-                %s
-                </td>
-            </tr>
-            </table>
-
-            <h2 class="certificate-title">
-            CERTIFICATE OF TRANSSHIPMENT / CUSTOMS CONTROL
-            </h2>
-
-            <p class="intro">
-            This is to certify, based on the records presented and 
-            verified by the Jamaica Customs Agency, that the containerized
-            cargo identified below was recorded as having remained within
-            the approved port/customs area and under Customs control during
-            the relevant transshipment period, subject to the particulars
-            and limitations stated herein.
-            </p>
-
-            <table class="details">
-            <tr>
-                <td class="label">APPLICANT / SHIPPING AGENT</td>
-                <td class="value">%s</td>
-
-                <td class="label">AGENT CODE</td>
-                <td class="value">%s</td>
-            </tr>
-
-            <tr>
-                <td class="label">TRN / TIN</td>
-                <td class="value">%s</td>
-
-                <td class="label">APPLICANT</td>
-                <td class="value">%s</td>
-            </tr>
+            <div class="certificate-content">
             
-            <tr>
-                <td class="label">PORT / TERMINAL</td>
-                <td class="value">%s</td>
+                <table class="header-table">
+                    <tr>
+                        <td style="width: 20%%;">
+                            <img
+                                class="jca-logo"
+                                src="data:image/png;base64,%s"
+                                alt="Jamaica Customs Agency Logo"
+                            />
+                        </td>
 
-                <td class="label">PURPOSE</td>
-                <td class="value">%s</td>
-            </tr>
+                        <td class="agency-title" style="width: 55%%;">
+                        <h1>Jamaica Customs Agency</h1>
+                        <p>Transshipment Certificate - Containers Remaining Under Customs Control</p>
+                        </td>
 
-            <tr>
-                <td class="label">INBOUND VESSEL / VOYAGE</td>
-                <td class="value">%s / %s</td>
+                        <td class="certificate-info" style="width: 25%%;">
+                        <strong>Certificate No.</strong><br/>
+                        %s
+                        <br/><br/>
 
-                <td class="label">DATE OF ARRIVAL</td>
-                <td class="value">%s</td>
-            </tr>
-            
-            <tr>
-                <td class="label">OUTBOUND VESSEL / VOYAGE</td>
-                <td class="value">%s / %s</td>
+                        <strong>Issue Date</strong><br/>
+                        %s
+                        </td>
+                    </tr>
+                </table>
 
-                <td class="label">DEPARTURE DATE</td>
-                <td class="value">%s</td>
-            </tr>
+                <h2 class="certificate-title">
+                CERTIFICATE OF TRANSSHIPMENT / CUSTOMS CONTROL
+                </h2>
 
-            <tr>
-                <td class="label">MANIFEST NO.</td>
-                <td class="value">%s</td>
+                <p class="intro">
+                This is to certify, based on the records presented and 
+                verified by the Jamaica Customs Agency, that the containerized
+                cargo identified below was recorded as having remained within
+                the approved port/customs area and under Customs control during
+                the relevant transshipment period, subject to the particulars
+                and limitations stated herein.
+                </p>
 
-                <td class="label">BILL OF LADING / WAYBILL</td>
-                <td class="value">%s</td>
-            </tr>
+                <table class="details">
+                    <tr>
+                        <td class="label">APPLICANT / SHIPPING AGENT</td>
+                        <td class="value">%s</td>
 
-            <tr>
-                <td class="label">CONTROL CHECK REF.</td>
-                <td class="value">%s</td>
+                        <td class="label">AGENT CODE</td>
+                        <td class="value">%s</td>
+                    </tr>
 
-                <td class="label">VERIFICATION STATUS</td>
-                <td class="value">%s</td>
-            </tr>
-            </table>
+                    <tr>
+                        <td class="label">TRN / TIN</td>
+                        <td class="value">%s</td>
 
-            <div class="section-title">
-            Containerized Cargo Covered by this Certificate
-            </div>
+                        <td class="label">APPLICANT</td>
+                        <td class="value">%s</td>
+                    </tr>
+                    
+                    <tr>
+                        <td class="label">PORT / TERMINAL</td>
+                        <td class="value">%s</td>
 
-            <table class="containers">
-            <thead>
-                <tr>
-                <th>#</th>
-                <th>CONTAINER NO.</th>
-                <th>SEAL</th>
-                <th>SIZE/TYPE</th>
-                <th>CARGO</th>
-                <th>PACKAGES</th>
-                <th>GROSS WEIGHT</th>
-                </tr>
-            </thead>
+                        <td class="label">PURPOSE</td>
+                        <td class="value">%s</td>
+                    </tr>
 
-            <tbody>
-                %s
-            </tbody>
-            </table>
+                    <tr>
+                        <td class="label">INBOUND VESSEL / VOYAGE</td>
+                        <td class="value">%s / %s</td>
 
-            <p class="certification">
-            <strong>Certification Satement:</strong>
-            The Jamaica Customs Agency confirms that the above particulars
-            have been reviewed against available Customs, manifest, terminal,
-            and/or port control records. This certificate does not replace
-            any statutory Customs declaration permit, licence, certificate of
-            origin, or other document required under law. Any false declaration,
-            altered document, or post-issuance discrepancy may result in
-            cancellation of this certificate and further enforcement action.
-            </p>
+                        <td class="label">DATE OF ARRIVAL</td>
+                        <td class="value">%s</td>
+                    </tr>
+                    
+                    <tr>
+                        <td class="label">OUTBOUND VESSEL / VOYAGE</td>
+                        <td class="value">%s / %s</td>
 
-            <div class="notes">
-            <strong>Officer Notes:</strong>
-            %s
-            </div>
+                        <td class="label">DEPARTURE DATE</td>
+                        <td class="value">%s</td>
+                    </tr>
 
-            <table class="verification-table">
-            <tr>
-                <td></td>
+                    <tr>
+                        <td class="label">MANIFEST NO.</td>
+                        <td class="value">%s</td>
 
-                <td class="qr-area" style="width: 110px;">
-                <img 
-                    class="qr-code"
-                    src="data:image/png;base64,%s"
-                />
+                        <td class="label">BILL OF LADING / WAYBILL</td>
+                        <td class="value">%s</td>
+                    </tr>
 
-                <div class="verification-code">
-                    QR / Verification Code<br/>
-                    %s
+                    <tr>
+                        <td class="label">CONTROL CHECK REF.</td>
+                        <td class="value">%s</td>
+
+                        <td class="label">VERIFICATION STATUS</td>
+                        <td class="value">%s</td>
+                    </tr>
+                </table>
+
+                <div class="section-title">
+                Containerized Cargo Covered by this Certificate
                 </div>
-                </td>
-            </tr>
-            </table>
 
-            <div class="footer">
-            Generated through the JCA Transshipment Certificate Service Portal
-            prototype. Certificate validity should be confirmed through the
-            Agency's official verification channel.
+                <table class="containers">
+                    <thead>
+                        <tr>
+                        <th>#</th>
+                        <th>CONTAINER NO.</th>
+                        <th>SEAL</th>
+                        <th>SIZE/TYPE</th>
+                        <th>CARGO</th>
+                        <th>PACKAGES</th>
+                        <th>GROSS WEIGHT</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        %s
+                    </tbody>
+                </table>
+
+                <p class="certification">
+                <strong>Certification Satement:</strong>
+                The Jamaica Customs Agency confirms that the above particulars
+                have been reviewed against available Customs, manifest, terminal,
+                and/or port control records. This certificate does not replace
+                any statutory Customs declaration permit, licence, certificate of
+                origin, or other document required under law. Any false declaration,
+                altered document, or post-issuance discrepancy may result in
+                cancellation of this certificate and further enforcement action.
+                </p>
+
+                <div class="notes">
+                <strong>Officer Notes:</strong>
+                %s
+                </div>
+
+                <table class="verification-table">
+                    <tr>
+                        <td></td>
+
+                        <td class="qr-area" style="width: 110px;">
+                        <img 
+                            class="qr-code"
+                            src="data:image/png;base64,%s"
+                        />
+
+                        <div class="verification-code">
+                            QR / Verification Code<br/>
+                            %s
+                        </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="footer">
+                Generated through the JCA Transshipment Certificate Service Portal
+                prototype. Certificate validity should be confirmed through the
+                Agency's official verification channel.
+                </div>
             </div>
 
         </body>
         </html>
 
         """.formatted(
+                    sealBase64,
+                    logoBase64,
                     data.controlNumber(),
                     issueDate,
 
@@ -460,5 +503,24 @@ public class CertificatePdfService {
                 """;
     
         return generatePdf(html);
+    }
+
+    private String loadImageBase64(String resourcePath) {
+        try {
+            ClassPathResource resource = new ClassPathResource(resourcePath);
+
+            byte[] imageBytes;
+
+            try (var inputStream = resource.getInputStream()) {
+                imageBytes = inputStream.readAllBytes();
+            }
+
+            return Base64.getEncoder().encodeToString(imageBytes);
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                "Could not load certificate image: " + resourcePath,
+                e
+            );
+        }
     }
 }

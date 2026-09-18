@@ -88,19 +88,76 @@
                         <p class="field-error">Please enter a valid email address.</p>
                     }
                 </div>
-    
+
                 <div class="form-field">
-                    <label for="password">Password</label>
+                    <label for="confirmEmail">Confirm Email Address</label>
                     <input 
-                        id="password"
-                        type="password"
-                        formControlName="password"
-                        autocomplete="new-password"
-                        placeholder="Enter your password"
+                        id="confirmEmail"
+                        type="email"
+                        formControlName="confirmEmail"
+                        autocomplete="email"
+                        placeholder="name@company.com"
                     />
+    
+                    @if (form.controls.confirmEmail.touched && form.hasError("emailMismatch")) {
+                        <p class="field-error">Email address does not match.</p>
+                    }
+                </div>
+    
+                <div class="password-field">
+                    <label for="password">Password</label>
+                    <div class="password-input" tabindex="0">
+                        <input 
+                            id="password"
+                            [type]="hidePassword ? 'password' : 'text'"
+                            formControlName="password"
+                            autocomplete="new-password"
+                            placeholder="Enter your password"
+                            (focus)="isPasswordFocused = true"
+                            (blur)="isPasswordFocused = false"
+                        />
+
+                        @if (isPasswordFocused) {
+                            <button 
+                                type="button" 
+                                (mousedown)="$event.preventDefault()" 
+                                (click)="togglePassword()"
+                            >
+                               @if (hidePassword) {
+                                    <svg 
+                                        lucideEye
+                                        class="hide-password-icon"
+                                        aria-hidden="true"
+                                    ></svg>
+                               } @else {
+                                    <svg 
+                                        lucideEyeOff
+                                        class="hide-password-icon"
+                                        aria-hidden="true"
+                                    ></svg>
+                               }
+                            </button>
+                        }
+                    </div>
+
     
                     @if (form.controls.password.touched && form.controls.password.invalid) {
                         <p class="field-error">Password must contain at least 8 characters.</p>
+                    }
+                </div>
+
+                <div class="form-field">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input 
+                        id="confirmPassword"
+                        type="password"
+                        formControlName="confirmPassword"
+                        autocomplete="new-password"
+                        placeholder="Confirm your password"
+                    />
+
+                    @if (form.controls.confirmPassword.touched && form.hasError("passwordMismatch")) {
+                        <p class="field-error">Passwords do not match.</p>
                     }
                 </div>
     
@@ -125,7 +182,7 @@
         <div class="image-overlay"></div>
 
         <img 
-            src="/images/register-side-image.png"
+            src="/images/register-side-image-portrait.png"
             alt="Register Side Image"
         />
 

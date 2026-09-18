@@ -10,6 +10,7 @@ import { guestGuard } from './auth/guest.guard';
 import { AuditLogs } from './admin/audit-logs/audit-logs';
 import { ArchivedApplications } from './requester/archived-applications/archived-applications';
 import { ApprovedRequests } from './reviewer/approved-requests/approved-requests';
+import { CertificateVerification } from './certificate-verification/certificate-verification';
 
 export const routes: Routes = [
     {
@@ -26,6 +27,14 @@ export const routes: Routes = [
         path: "login",
         component: Login,
         canActivate: [guestGuard]
+    },
+    {
+        path: "verify-certificate",
+        component: CertificateVerification
+    },
+    {
+        path: "verify-certificate/:controlNumber",
+        component: CertificateVerification
     },
     {
         path: "my-applications",

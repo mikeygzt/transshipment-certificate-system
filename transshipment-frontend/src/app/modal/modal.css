@@ -30,6 +30,12 @@
     width: 100%;
 }
 
+.form-error{
+    margin: 3px;
+    color: #c62828;
+    font-size: 0.72rem;
+}
+
 #remarks textarea{
     min-height: 144px;
     padding: 4px;
@@ -163,6 +169,7 @@ label{
 }
 
 .save-button:hover:not(:disabled) {
+    cursor: pointer;
     background: #ececec;
 }
 
@@ -184,6 +191,7 @@ label{
 }
 
 .primary-button:hover:not(:disabled) {
+    cursor: pointer;
     background: #000;
 }
 

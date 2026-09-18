@@ -1,0 +1,365 @@
+:host {
+    display: block;
+    min-height: 100dvh;
+}
+
+.verification-page {
+    min-height: 100dvh;
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 32px;
+    box-sizing: border-box;
+
+    /* page background */
+    background: #c2c2c2;
+}
+
+.verification-modal {
+    width: min(720px, 100%);
+    min-height: 600px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    background: #ffffff;
+    border-radius: 10px;
+
+    padding: 32px 70px 24px;
+    box-sizing: border-box;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+    text-align: center;
+}
+
+.verification-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.agency-logo {
+    width: 100px;
+    height: auto;
+    object-fit: contain;
+}
+
+.verification-header p {
+    margin: 8px 0 0;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.verification-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.verification-content h1 {
+    margin: 16px 0 12px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.description {
+    max-width: 480px;
+    margin: 0 0 20px;
+    color: #6b7280;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.view-certificate {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    gap: 5px;
+    border-radius: 5px;
+    border: 1px solid #166ad0;
+    background-color: #ffffff;
+    color: #166ad0;
+    margin-bottom: 10px;
+}
+
+.view-certificate-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.view-certificate:hover {
+    cursor: pointer;
+    background-color: #166ad0;
+    color: #ffffff;
+}
+
+.status-icon {
+    width: 58px;
+    height: 58px;
+}
+
+.valid-icon {
+    color: #166534;
+}
+
+.invalid-icon {
+    color: #991b1b;
+}
+
+.certificate-details {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    text-align: left;
+    margin-top: 8px;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 18px 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.detail-value {
+    color: #111827;
+    font-size: 0.8rem;
+    text-align: right;
+}
+
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.status-valid {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.status-invalid {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+.manual-verification {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 60px;
+}
+
+.verification-form {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.verification-form label {
+    margin-bottom: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.verification-form input {
+    padding: 13px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+.verification-form input:focus {
+    outline: none;
+    border-color: #17365d;
+}
+
+.verification-form button {
+    margin-top: 10px;
+    padding: 13px;
+    border: none;
+    border-radius: 6px;
+    background: #166ad0;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.verification-form button:hover {
+    background-color: #1560bc;
+}
+
+.error-message {
+    margin-top: 5px;
+    font-size: 0.75rem;
+    color: #991b1b;
+}
+
+.verification-notice,
+.notice-box {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    margin-top: 24px;
+
+    padding: 16px 18px;
+
+    background: #f8fafc;
+    border-radius: 8px;
+
+    color: #4b5563;
+
+    font-size: 0.75rem;
+    line-height: 1.5;
+
+    text-align: left;
+}
+
+.verification-notice p {
+    margin: 5px 0 0;
+}
+
+.learn-more a {
+    text-decoration: none;
+    color: #166ad0;
+}
+
+.learn-more:hover {
+    cursor: pointer;
+    color: #1560bc;
+    text-decoration: underline;
+}
+
+.search-link {
+    display: flex;
+    align-items: center;
+    justify-self: center;
+    text-decoration: none;
+    gap: 3px;
+    margin-top: 10px;
+    color: #4e6985;
+    font-size: 0.65rem;
+}
+
+.search-icon {
+    width: 12px;
+    height: 12px;
+}
+
+.search-link:hover {
+    cursor: pointer;
+    color: #3c5065;
+    text-decoration: underline;
+}
+
+.portal-link-div {
+    display: flex;
+    justify-content: center;
+    margin-block: 10px;
+}
+
+.portal-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    background-color: #166ad0;
+    color: #ffffff;
+    font-size: 0.75rem;
+    border: 1px solid #1665c6;
+    border-radius: 30px;
+    padding: 10px;
+    padding-inline: 75px;
+    gap: 3px;
+    text-decoration: none;
+}
+
+.portal-link-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.portal-link:hover {
+    cursor: pointer;
+    background-color: #1560bc;
+}
+
+.verification-footer {
+    margin-top: 10px;
+    padding-top: 18px;
+    border-top: 1px solid #e5e7eb;
+    color: #9ca3af;
+    font-size: 0.65rem;
+}
+
+.verification-footer p {
+    margin: 0 0 3px;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.loading-spinner {
+    width: 42px;
+    height: 42px;
+
+    border: 4px solid #e5e7eb;
+    border-top-color: #17365d;
+
+    border-radius: 50%;
+
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 650px) {
+    .verification-page {
+        padding: 18px;
+    }
+
+    .verification-modal {
+        min-height: auto;
+        padding: 28px 22px;
+    }
+
+    .verification-header {
+        margin-bottom: 38px;
+    }
+
+    .detail-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .detail-value {
+        text-align: left;
+    }
+}

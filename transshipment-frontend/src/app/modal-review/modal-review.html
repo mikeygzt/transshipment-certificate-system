@@ -180,58 +180,74 @@
     <div class="review-decision-panel">
         <form [formGroup]="decisionForm" (ngSubmit)="submit()">
 
-            <div class="decision-options">
-                <label class="decision-radio">
-                    <input
-                        type="radio"
-                        formControlName="decision"
-                        value="APPROVED"
-                        (change)="onDecisionChange()">
-                    <span>Approve</span>
-                </label>
-
-                <label class="decision-radio">
-                    <input
-                        type="radio"
-                        formControlName="decision"
-                        value="REJECTED"
-                        (change)="onDecisionChange()">
-                    <span>Reject</span>
-                </label>
-            </div>
-
-            <div class="form-group-review-comments" id="remarks">
-                <label for="reviewComments">
-                    Review Comments
-                    @if (isRejectSelected) {
-                        <span class="required-asterisk">*</span>
+            @if (!isClaimedByOther) {
+                <div class="decision-options">
+                    <label class="decision-radio">
+                        <input
+                            type="radio"
+                            formControlName="decision"
+                            value="APPROVED"
+                            (change)="onDecisionChange()">
+                        <span>Approve</span>
+                    </label>
+    
+                    <label class="decision-radio">
+                        <input
+                            type="radio"
+                            formControlName="decision"
+                            value="REJECTED"
+                            (change)="onDecisionChange()">
+                        <span>Reject</span>
+                    </label>
+                </div>
+    
+                <div class="form-group-review-comments" id="remarks">
+                    <label for="reviewComments">
+                        Review Comments
+                        @if (isRejectSelected) {
+                            <span class="required-asterisk">*</span>
+                        }
+                    </label>
+                    <textarea
+                        id="reviewComments"
+                        type="text"
+                        formControlName="reviewComments"
+                        placeholder="Add comments for the applicant"
+                        rows="2"
+                        style="resize: none; font-size: 0.85rem;">
+                    </textarea>
+                    
+                    @if (decisionForm.controls.reviewComments.touched && decisionForm.controls.reviewComments.invalid) {
+                    <p class="field-error">Review comments are required when rejecting a request.</p>
                     }
-                </label>
-                <textarea
-                    id="reviewComments"
-                    type="text"
-                    formControlName="reviewComments"
-                    placeholder="Add comments for the applicant"
-                    rows="2"
-                    style="resize: none; font-size: 0.85rem;">
-                </textarea>
-                
-                @if (decisionForm.controls.reviewComments.touched && decisionForm.controls.reviewComments.invalid) {
-                <p class="field-error">Review comments are required when rejecting a request.</p>
+    
+                    @if (decisionForm.controls.decision.touched && decisionForm.controls.decision.invalid) {
+                    <p class="field-error">Please select Approve or Reject.</p>
                 }
-
-                @if (decisionForm.controls.decision.touched && decisionForm.controls.decision.invalid) {
-                <p class="field-error">Please select Approve or Reject.</p>
+                </div>
             }
-            </div>
 
             @if (errorMessage) {
                 <p class="form-error">{{ errorMessage }}</p>
             }
 
-            <button class="submit-decision primary-button" type="submit" [disabled]="isSubmitting">
-                {{ isSubmitting ? "Submitting..." : "Submit Decision" }}
-            </button>
+            @if (!isClaimedByOther) {
+                <button class="submit-decision primary-button" type="submit" [disabled]="isSubmitting">
+                    {{ isSubmitting ? "Submitting..." : "Submit Decision" }}
+                </button>
+            } 
+            
+            @if (claimErrorMessage) {
+                <div class="claim-error-message">
+                    <svg
+                        lucideRotateCwFadingClock
+                        class="nav-icon"
+                        aria-hidden="true"
+                    ></svg>
+                    <span>{{ claimErrorMessage }}</span>
+                </div>
+            }
+
         </form>
     </div>
 </main>

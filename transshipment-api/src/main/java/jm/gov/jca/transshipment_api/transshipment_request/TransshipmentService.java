@@ -1,5 +1,6 @@
 package jm.gov.jca.transshipment_api.transshipment_request;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -7,10 +8,12 @@ import java.util.stream.Collectors;
 
 import jm.gov.jca.transshipment_api.audit.AuditAction;
 import jm.gov.jca.transshipment_api.audit.AuditLogService;
+import jm.gov.jca.transshipment_api.review.ReviewQueueEventService;
 import jm.gov.jca.transshipment_api.transshipment_certificate.CertificateService;
 import jm.gov.jca.transshipment_api.transshipment_request.dto.ContainerDetailsRequest;
 import jm.gov.jca.transshipment_api.transshipment_request.dto.ContainerDetailsResponse;
 import jm.gov.jca.transshipment_api.user.UserRepository;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,7 @@ public class TransshipmentService {
     private final ContainerMapper containerMapper;
     private final AuditLogService auditLogService;
     private final CertificateService certificateService;
+    private final ReviewQueueEventService reviewQueueEventService;
 
     public TransshipmentService(
             TransshipmentRequestRepository transshipmentRequestRepository,
@@ -39,7 +43,8 @@ public class TransshipmentService {
             ContainerDetailsRepository containerDetailsRepository,
             ContainerMapper containerMapper,
             AuditLogService auditLogService,
-            CertificateService certificateService
+            CertificateService certificateService,
+            ReviewQueueEventService reviewQueueEventService
         ) {
         this.transshipmentRequestRepository = transshipmentRequestRepository;
         this.requestMapper = requestMapper;
@@ -48,6 +53,7 @@ public class TransshipmentService {
         this.containerMapper = containerMapper;
         this.auditLogService = auditLogService;
         this.certificateService = certificateService;
+        this.reviewQueueEventService = reviewQueueEventService;
     }
 
     //create a response entity
@@ -96,7 +102,10 @@ public class TransshipmentService {
         // Audit log capture
         RequestStatus newStatus = entity.getStatus();
 
-        TransshipmentRequest savedRequest = transshipmentRequestRepository.save(entity);
+        TransshipmentRequest savedRequest = transshipmentRequestRepository.saveAndFlush(entity);
+
+        // temp
+        System.out.println("CREATED AT AFTER SAVE: " + savedRequest.getCreatedAt());
 
         List<ContainerDetails> newContainers = request.containers().stream()
                 .map(c -> new ContainerDetails(
@@ -166,11 +175,8 @@ public class TransshipmentService {
                 .toList();
     }
 
-    //Allow for updates to the request
     @Transactional
     public void updateRequest(UUID id, TransshipmentDetailsRequest request, Authentication authentication) {
-        //strip the value of the requestid
-        //Find the request by id
 
         TransshipmentRequest thisRequest = transshipmentRequestRepository
                 .findById(id)
@@ -200,8 +206,32 @@ public class TransshipmentService {
 
         RequestStatus newStatus = thisRequest.getStatus();
 
+        if (newStatus == RequestStatus.APPROVED || newStatus == RequestStatus.REJECTED) {
+                if (previousStatus != RequestStatus.UNDER_REVIEW) {
+                        throw new ResponseStatusException(
+                                HttpStatus.CONFLICT,
+                                "This request is not currently under review."
+                        );
+                }
+
+                if (
+                        thisRequest.getAssignedReviewer() == null || 
+                        !thisRequest.getAssignedReviewer().getId().equals(performedBy.getId())
+                ) {
+                        throw new ResponseStatusException(
+                                HttpStatus.FORBIDDEN, 
+                                "This request is assigned to another reviewer."
+                        );
+                }
+        }
+
         // temp
         System.out.println("NEW STATUS: " + newStatus);
+
+        if (newStatus == RequestStatus.APPROVED || newStatus == RequestStatus.REJECTED) {
+                thisRequest.setAssignedReviewer(null);
+                thisRequest.setAssignedReviewer(null);
+        }
 
        TransshipmentRequest savedRequest = transshipmentRequestRepository.save(thisRequest);
 
@@ -220,7 +250,9 @@ public class TransshipmentService {
                 } else if (newStatus == RequestStatus.REJECTED) {
                         auditAction = AuditAction.REQUEST_REJECTED;
 
-                } else if (newStatus == RequestStatus.RESUBMITTED) {
+                } else if (previousStatus == RequestStatus.REJECTED && 
+                        newStatus == RequestStatus.RESUBMITTED
+                ) {
                         auditAction = AuditAction.REQUEST_RESUBMITTED;
                 }
 
@@ -234,6 +266,8 @@ public class TransshipmentService {
                                 newStatus
                         );
                 }
+
+                reviewQueueEventService.notifyQueueChangedAfterCommit();
         }
     }
 
@@ -283,22 +317,116 @@ public class TransshipmentService {
 
     }
 
-    //Delete method
     @Transactional
-    public void deleteRequest(UUID requestId){
-        TransshipmentRequest request = transshipmentRequestRepository
-                .findById(requestId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found")
+    public TransshipmentRequest claimRequest(UUID requestId, Authentication authentication) {
+        UserAccount reviewer = userRepository
+                .findByEmailIgnoreCase(authentication.getName())
+                .orElseThrow(() -> 
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, 
+                                "Reviewer account not found."
+                        )
                 );
+        
+        TransshipmentRequest request = transshipmentRequestRepository
+                .findByRequestIdForUpdate(requestId)
+                .orElseThrow(() -> 
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, 
+                                "Request not found."
+                        )
+                );
+        
+        if (request.getStatus() != RequestStatus.SUBMITTED && 
+                request.getStatus() != RequestStatus.RESUBMITTED
+        ) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, 
+                        "This request is no longer available for review."
+                );
+        }
 
-        List<ContainerDetails> containers = containerDetailsRepository.findByRequestRequestId(requestId);
-        containerDetailsRepository.deleteAll(containers);
+        request.setStatus(RequestStatus.UNDER_REVIEW);
+        request.setAssignedReviewer(reviewer);
+        request.setReviewClaimedAt(Instant.now());
 
-        transshipmentRequestRepository.delete(request);
+        TransshipmentRequest savedRequest = 
+                transshipmentRequestRepository.save(request);
+        
+        reviewQueueEventService.notifyQueueChangedAfterCommit();
+        
 
+        return savedRequest;
     }
 
+    @Transactional
+    public TransshipmentRequest releaseRequest(UUID requestId, Authentication authentication) {
+        UserAccount reviewer = userRepository
+                .findByEmailIgnoreCase(authentication.getName())
+                .orElseThrow(() -> 
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, 
+                                "Reviewer account not found."
+                        )
+        );
 
+        TransshipmentRequest request = transshipmentRequestRepository
+                .findByRequestIdForUpdate(requestId)
+                .orElseThrow(() -> 
+                        new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "Request not found."
+                        )
+        );
 
+        if (request.getStatus() != RequestStatus.UNDER_REVIEW || 
+                !request.getAssignedReviewer().getId().equals(reviewer.getId())
+        ) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, 
+                        "This request is assigned to another reviewer."
+                );
+        }
+
+        request.setStatus(RequestStatus.SUBMITTED);
+        request.setAssignedReviewer(null);
+        request.setReviewClaimedAt(null);
+
+        TransshipmentRequest savedRequest = 
+                transshipmentRequestRepository.save(request);
+
+        reviewQueueEventService.notifyQueueChangedAfterCommit();
+
+        return savedRequest;
+    }
+
+    @Transactional
+    public void refreshRequestClaim(UUID requestId, Authentication authentication) {
+        UserAccount reviewer = userRepository
+                .findByEmailIgnoreCase(authentication.getName())
+                .orElseThrow(() -> 
+                        new ResponseStatusException(HttpStatus.UNAUTHORIZED, 
+                                "Authenticated reviewer not found."
+                        )
+                );
+        
+        TransshipmentRequest request = transshipmentRequestRepository
+                .findByRequestIdForUpdate(requestId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, 
+                                "Request not found"
+                        )
+                );
+        
+        if (request.getStatus() != RequestStatus.UNDER_REVIEW) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, 
+                        "This request is no longer under review"
+                );
+        }
+
+        if (request.getAssignedReviewer() == null || 
+                !request.getAssignedReviewer().getId().equals(reviewer.getId())) {
+
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, 
+                                "This request is assigned to another reviewer."
+                        );
+        }
+
+        request.setReviewClaimedAt(Instant.now());
+        transshipmentRequestRepository.save(request);
+    }
 }

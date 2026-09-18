@@ -7,7 +7,7 @@ import { TransshipmentResponse, RequestStatus } from '../../transhipmentrequest.
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
 import { AuthenticatedUser } from '../../auth.models';
-import { LucideDownload, LucideEye, LucideListFilter, LucidePlus, LucideSearch, LucideTrash, LucideX } from '@lucide/angular';
+import { LucideDownload, LucideEye, LucideFileText, LucideListFilter, LucidePlus, LucideSearch, LucideTrash, LucideX } from '@lucide/angular';
 import { finalize } from 'rxjs';
 import { Dialog } from '@angular/cdk/dialog';
 import { Modal } from '../../modal/modal';
@@ -29,7 +29,8 @@ import { CertificateService } from '../../certificate.service';
     LucidePlus, 
     LucideX, 
     LucideEye,
-    LucideDownload
+    LucideDownload,
+    LucideFileText
   ],
   templateUrl: './my-applications.html',
   styleUrl: './my-applications.css',
@@ -62,10 +63,13 @@ export class MyApplications {
   readonly isFilterOpen = signal(false);
   readonly statusFilter = signal<RequestStatus | "ALL">("ALL");
 
-  readonly requestPendingDelete = signal<TransshipmentResponse | null>(null);
-  readonly showDeleteConfirmation = signal(false);
-  readonly isDeleting = signal(false);
-  readonly deleteErrorMessage = signal("");
+  // Had to define a fixed sort due to the table resorting after every action
+  readonly tableSorts = [
+    {
+      prop: 'createdAt',
+      dir: 'desc' as const
+    }
+  ]
 
 //Collect ID of the current USER to use for later methods
   constructor(){
@@ -161,53 +165,6 @@ export class MyApplications {
         this.selectedRequest.set(updatedRequest);
       }
     });
-  }
-
-  //Opens the delete confirmation for a given request (called from the table's delete button)
-  openDeleteConfirmation(event: Event, request: TransshipmentResponse): void {
-    event.stopPropagation();
-    this.requestPendingDelete.set(request);
-    this.showDeleteConfirmation.set(true);
-    this.deleteErrorMessage.set("");
-  }
-
-  cancelDelete(): void {
-    this.requestPendingDelete.set(null);
-    this.showDeleteConfirmation.set(false);
-    this.deleteErrorMessage.set("");
-  }
-
-  confirmDelete(): void {
-    const request = this.requestPendingDelete();
-
-    if (!request || this.isDeleting()) {
-      return;
-    }
-
-    this.isDeleting.set(true);
-    this.deleteErrorMessage.set("");
-
-    this.requestService.delete(request.requestId)
-      .pipe(
-        finalize(() => {
-          this.isDeleting.set(false);
-        })
-      )
-      .subscribe({
-        next: () => {
-          this.requests.update(current => current.filter(r => r.requestId !== request.requestId));
-
-          if (this.selectedRequest()?.requestId === request.requestId) {
-            this.closeRequestDetails();
-          }
-
-          this.requestPendingDelete.set(null);
-          this.showDeleteConfirmation.set(false);
-        },
-        error: () => {
-          this.deleteErrorMessage.set("We could not delete this request. Please try again.");
-        }
-      });
   }
 
   readonly filteredRequests = computed(() => {

@@ -6,7 +6,7 @@ import java.util.UUID;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name="Container Details")
+@Table(name="container_details")
 public class ContainerDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

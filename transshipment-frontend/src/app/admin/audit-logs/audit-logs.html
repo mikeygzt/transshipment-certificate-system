@@ -188,17 +188,17 @@
                             ngx-datatable-cell-template
                             let-row="row"
                         >
-                            @if (row.previousStatus || row.newStatus) {
+                            @if (row.previousRequestStatus || row.newRequestStatus) {
                                 <div>
                                     <span>
-                                        {{ row.previousStatus ?? "-" }}
+                                        {{ row.previousRequestStatus ?? "-" }}
                                     </span>
                                     <svg
                                         lucideArrowRight
                                         [size]="16"
                                     ></svg>
                                     <span>
-                                        {{ row.newStatus ?? "-" }}
+                                        {{ row.newRequestStatus ?? "-" }}
                                     </span>
                                 </div>
                             } @else if (row.previousRole || row.newRole) {
