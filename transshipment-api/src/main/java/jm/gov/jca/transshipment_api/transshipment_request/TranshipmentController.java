@@ -56,8 +56,6 @@ public class TranshipmentController {
     public TransshipmentDetailsResponse getRequest(@PathVariable UUID id) {
         return transshipmentService.getRequest(id);
     }
-    
-    
 
     @PatchMapping("/update/{id}")
     @ResponseStatus(HttpStatus.OK)

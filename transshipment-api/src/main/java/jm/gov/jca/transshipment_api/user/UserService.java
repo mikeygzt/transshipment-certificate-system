@@ -140,32 +140,6 @@ public class UserService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteUser(UUID userId, Authentication authentication){
-
-        UserAccount user = userRepository
-        .findById(userId)
-        .orElseThrow(() -> 
-            new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
-        );
-
-        if (user.getRole() == Role.ADMIN 
-            && userRepository.countByRole(Role.ADMIN) <= 1
-        ){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "The final administrator cannot be deleted");
-        }
-
-        if (user.getEmail().equalsIgnoreCase(authentication.getName())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                "You cannot delete your own account.");
-        }
-
-        emailVerificationRepository.deleteAllByUser(user);
-        userRepository.delete(user);
-    }
-
-    @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse updateUser(UUID userId, AdminUpdateUserRequest request, Authentication authentication) {
         UserAccount user = userRepository
             .findById(userId)

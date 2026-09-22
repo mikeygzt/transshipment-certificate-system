@@ -15,6 +15,4 @@ public interface EmailVerificationRepository extends JpaRepository<EmailVerifica
 
     List<EmailVerificationCode>
     findAllByUserAndUsedAtIsNull(UserAccount user);
-
-    void deleteAllByUser(UserAccount user);
 }
