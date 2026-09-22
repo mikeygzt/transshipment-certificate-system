@@ -7,16 +7,31 @@ import { TransshipmentResponse, RequestStatus } from '../../transhipmentrequest.
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
 import { AuthenticatedUser } from '../../auth.models';
-import { LucideListFilter, LucidePlus, LucideSearch, LucideTrash, LucideX } from '@lucide/angular';
+import { LucideDownload, LucideEye, LucideFileText, LucideListFilter, LucidePlus, LucideSearch, LucideTrash, LucideX } from '@lucide/angular';
 import { finalize } from 'rxjs';
 import { Dialog } from '@angular/cdk/dialog';
 import { Modal } from '../../modal/modal';
 import { Modaledit } from '../../modaledit/modaledit';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
+import { DatePipe } from '@angular/common';
+import { CertificateService } from '../../certificate.service';
 
 
 @Component({
   selector: 'app-my-applications',
-  imports: [DashboardLayout, ReactiveFormsModule, LucideListFilter, LucideSearch, LucidePlus, LucideX, LucideTrash],
+  imports: [
+    DashboardLayout,
+    NgxDatatableModule,
+    ReactiveFormsModule,
+    DatePipe,
+    LucideListFilter, 
+    LucideSearch, 
+    LucidePlus, 
+    LucideX, 
+    LucideEye,
+    LucideDownload,
+    LucideFileText
+  ],
   templateUrl: './my-applications.html',
   styleUrl: './my-applications.css',
 })
@@ -31,6 +46,7 @@ export class MyApplications {
   readonly search = signal("");
   readonly currentResponse = signal<TransshipmentResponse|null>(null);
   readonly selectedRequest = signal<TransshipmentResponse | null>(null);
+  readonly certificateService = inject(CertificateService);
 
   //applications: TransshipmentResponse[] = [];
 
@@ -47,10 +63,13 @@ export class MyApplications {
   readonly isFilterOpen = signal(false);
   readonly statusFilter = signal<RequestStatus | "ALL">("ALL");
 
-  readonly requestPendingDelete = signal<TransshipmentResponse | null>(null);
-  readonly showDeleteConfirmation = signal(false);
-  readonly isDeleting = signal(false);
-  readonly deleteErrorMessage = signal("");
+  // Had to define a fixed sort due to the table resorting after every action
+  readonly tableSorts = [
+    {
+      prop: 'createdAt',
+      dir: 'desc' as const
+    }
+  ]
 
 //Collect ID of the current USER to use for later methods
   constructor(){
@@ -95,6 +114,12 @@ export class MyApplications {
 
   clearFilters(): void {
     this.statusFilter.set("ALL");
+  }
+
+  onTableActivate(event: any): void {
+    if (event.type === "click" && event.row) {
+      this.openRequestDetails(event.row);
+    }
   }
 
   openRequestDetails(request: TransshipmentResponse): void {
@@ -142,71 +167,6 @@ export class MyApplications {
     });
   }
 
-  //Opens the delete confirmation for a given request (called from the table's delete button)
-  openDeleteConfirmation(event: Event, request: TransshipmentResponse): void {
-    event.stopPropagation();
-    this.requestPendingDelete.set(request);
-    this.showDeleteConfirmation.set(true);
-    this.deleteErrorMessage.set("");
-  }
-
-  cancelDelete(): void {
-    this.requestPendingDelete.set(null);
-    this.showDeleteConfirmation.set(false);
-    this.deleteErrorMessage.set("");
-  }
-
-  confirmDelete(): void {
-    const request = this.requestPendingDelete();
-
-    if (!request || this.isDeleting()) {
-      return;
-    }
-
-    this.isDeleting.set(true);
-    this.deleteErrorMessage.set("");
-
-    this.requestService.delete(request.requestId)
-      .pipe(
-        finalize(() => {
-          this.isDeleting.set(false);
-        })
-      )
-      .subscribe({
-        next: () => {
-          this.requests.update(current => current.filter(r => r.requestId !== request.requestId));
-
-          if (this.selectedRequest()?.requestId === request.requestId) {
-            this.closeRequestDetails();
-          }
-
-          this.requestPendingDelete.set(null);
-          this.showDeleteConfirmation.set(false);
-        },
-        error: () => {
-          this.deleteErrorMessage.set("We could not delete this request. Please try again.");
-        }
-      });
-  }
-
-  //Formats an ISO timestamp as DD, MM, YYYY HH:MM
-  formatCreatedAt(createdAt: string): string {
-    const date = new Date(createdAt);
-
-    if (isNaN(date.getTime())) {
-      return createdAt;
-    }
-
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-
-    return `${day}/${month}/${year}`;
-  }
-
-
   readonly filteredRequests = computed(() => {
     const query = this.search().trim().toLowerCase();
     const status = this.statusFilter();
@@ -235,17 +195,56 @@ export class MyApplications {
         requestType.toLowerCase().includes(query)
       );
     });
-  }
-);
+  });
 
   getStatusLabel(status: RequestStatus): string {
-      switch (status) {
-        case "SUBMITTED": return "Submitted";
-        case "UNDER_REVIEW": return "Under Review";
-        case "APPROVED": return "Approved";
-        case "REJECTED": return "Rejected";
-        case "RESUBMITTED": return "Resubmitted";
-      }
-}
+    switch (status) {
+      case "SUBMITTED": return "Submitted";
+      case "UNDER_REVIEW": return "Under Review";
+      case "APPROVED": return "Approved";
+      case "REJECTED": return "Rejected";
+      case "RESUBMITTED": return "Resubmitted";
+    }
+  }
+
+  viewCertificate(requestId: string) {
+    this.certificateService
+      .generateCertificatePdf(requestId)
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = URL.createObjectURL(blob);
+          window.open(url, "_blank");
+
+          setTimeout(() => {
+            URL.revokeObjectURL(url);
+          }, 1000);
+        },
+        error: (error) => {
+          console.error("Failed to load certificate:", error);
+        }
+      });
+  }
+
+  downloadCertificate(requestId: string) {
+    console.log("Download clicked: ", requestId);
+    this.certificateService
+      .generateCertificatePdf(requestId)
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = URL.createObjectURL(blob);
+
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `transshipment-certificate-${requestId}.pdf`;
+
+          link.click();
+
+          URL.revokeObjectURL(url);
+        },
+        error: (error) => {
+          console.error("Failed to download certificate:", error);
+        }
+      });
+  }
 
 }

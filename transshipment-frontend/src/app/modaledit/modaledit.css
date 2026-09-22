@@ -184,6 +184,7 @@ label{
 }
 
 .primary-button:hover:not(:disabled) {
+    cursor: pointer;
     background: #000;
 }
 

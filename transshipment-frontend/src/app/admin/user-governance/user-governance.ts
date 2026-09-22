@@ -46,7 +46,6 @@ export class UserGovernance {
 
   readonly showDeactivateConfirmation = signal(false);
   readonly showActivateConfirmation = signal(false);
-  readonly showDeleteConfirmation = signal(false);
 
   readonly isDeactivating = signal(false)
   readonly isActivating = signal(false);
@@ -246,15 +245,6 @@ export class UserGovernance {
 
   cancelActivate(): void {
     this.showActivateConfirmation.set(false);
-    this.dangerZoneErrorMessage.set("");
-  }
-
-  openDeleteConfirmation(): void {
-    this.showDeleteConfirmation.set(true);
-  }
-
-  cancelDelete(): void {
-    this.showDeleteConfirmation.set(false);
     this.dangerZoneErrorMessage.set("");
   }
 
@@ -461,47 +451,9 @@ export class UserGovernance {
       })
   }
 
-  deleteSelectedUser(): void {
-    const user = this.selectedUser();
-
-    if (!user || this.isDeleting()) {
-      return;
-    }
-
-    this.isDeleting.set(true);
-    this.dangerZoneErrorMessage.set("");
-
-    this.userGovernanceService.deleteUser(user.id)
-      .pipe(
-        finalize(() => {
-          this.isDeleting.set(false);
-        })
-      )
-      .subscribe({
-        next: updatedUser => {
-          this.selectedUser.set(updatedUser);
-
-          this.users.update(users => 
-            users.filter(existingUser => 
-              existingUser.id !== user.id
-            )
-          )
-
-          this.selectedUser.set(null);
-          this.clearDangerZoneConfirmations();
-          this.cancelChanges();
-        },
-        
-        error: () => {
-          this.dangerZoneErrorMessage.set("We could not delete this account. Please try again.");
-        }
-      })
-  }
-
   clearDangerZoneConfirmations() {
     this.showDeactivateConfirmation.set(false);
     this.showActivateConfirmation.set(false);
-    this.showDeleteConfirmation.set(false);
   }
 
 }

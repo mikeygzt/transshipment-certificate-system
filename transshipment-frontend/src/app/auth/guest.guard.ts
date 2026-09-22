@@ -7,7 +7,7 @@ import { catchError, map, of } from "rxjs";
 function getLandingPage(role: UserRole) {
     switch (role) {
         case "REQUESTER":
-            return "/my-application";
+            return "/my-applications";
         case "REVIEWER":
             return "/review-queue";
         case "ADMIN":

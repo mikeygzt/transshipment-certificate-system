@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 import { AuthenticatedHeader } from '../authenticated-header/authenticated-header';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { LucideFileText, LucideUsers, LucideClipboardCheck, LucideLogs } from '@lucide/angular';
+import { LucideFileText, LucideUsers, LucideClipboardCheck, LucideLogs, LucideArchive, LucideBadgeCheck, LucideShieldCheck } from '@lucide/angular';
 import { UserRole } from '../../auth.models';
 
 @Component({
@@ -13,7 +13,9 @@ import { UserRole } from '../../auth.models';
     LucideFileText,
     LucideUsers,
     LucideClipboardCheck,
-    LucideLogs
+    LucideLogs,
+    LucideArchive,
+    LucideShieldCheck
 ],
   templateUrl: './dashboard-layout.html',
   styleUrl: './dashboard-layout.css',

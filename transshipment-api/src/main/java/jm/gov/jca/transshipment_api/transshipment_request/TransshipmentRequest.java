@@ -8,17 +8,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.*;
 import java.util.UUID;
-/*import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;*/
 import jm.gov.jca.transshipment_api.user.UserAccount;
 
-//Structure for the Transhipment_Requests Table
 @Entity
-@Table(name ="transhipment_requests")
+@Table(name ="transshipment_requests")
 public class TransshipmentRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -30,6 +23,14 @@ public class TransshipmentRequest {
         name = "requester_user_id"
     )
     private UserAccount requesterUserId;
+
+    @ManyToOne
+    @JoinColumn(name = "assigned_reviewer_user_id")
+    private UserAccount assignedReviewer;
+
+    // Allowing a reviewer to own their review claim while it's active
+    @Column(name = "review_claimed_at")
+    private Instant reviewClaimedAt;
 
     @Column(
         nullable = false,
@@ -71,7 +72,7 @@ public class TransshipmentRequest {
         length = 25,
         name = "phone_number"
     )
-    private String phoneNumber; //submitter phone number
+    private String phoneNumber;
 
     @Column(
         nullable = false,
@@ -110,7 +111,7 @@ public class TransshipmentRequest {
 
     @Column(
         nullable = false,
-        name = "date of arrival"
+        name = "date_of_arrival"
     )
     private LocalDate dateOfArrival;
 
@@ -163,6 +164,7 @@ public class TransshipmentRequest {
     )
     private String remarksInstructions;
 
+    @Enumerated(EnumType.STRING)
     @Column(
         nullable = false,
         length = 50,
@@ -188,7 +190,8 @@ public class TransshipmentRequest {
     @CreationTimestamp
     @Column(
         nullable = false,
-        name = "created_at"
+        name = "created_at",
+        updatable = false
     )
     private Instant createdAt;
 
@@ -223,8 +226,7 @@ public class TransshipmentRequest {
     String billOfLadingWaybill,
     String rotationCallReference,
     String remarksInstructions,
-    String reviewComments,
-    String pdfCertificatePath
+    String reviewComments
 ) {
     this.requesterUserId = requesterUserId;
     this.shippingAgentName = shippingAgentName;
@@ -247,7 +249,6 @@ public class TransshipmentRequest {
     this.rotationCallReference = rotationCallReference;
     this.remarksInstructions = remarksInstructions;
     this.reviewComments = reviewComments;
-    this.pdfCertificatePath = pdfCertificatePath;
 }
 
 public UUID getRequestId() {
@@ -256,6 +257,14 @@ public UUID getRequestId() {
 
 public UserAccount getRequesterUserId() {
     return requesterUserId;
+}
+
+public UserAccount getAssignedReviewer() {
+    return assignedReviewer;
+}
+
+public Instant getReviewClaimedAt() {
+    return reviewClaimedAt;
 }
 
 public String getShippingAgentName() {
@@ -342,10 +351,6 @@ public String getReviewComments() {
     return reviewComments;
 }
 
-public String getPdfCertificatePath() {
-    return pdfCertificatePath;
-}
-
 public Instant getCreatedAt() {
     return createdAt;
 }
@@ -360,6 +365,14 @@ public void setStatus(RequestStatus status){
 
 public void setRequesterUserId(UserAccount requesterUserId) {
     this.requesterUserId = requesterUserId;
+}
+
+public void setAssignedReviewer(UserAccount reviewer) {
+    this.assignedReviewer = reviewer;
+}
+
+public void setReviewClaimedAt(Instant reviewClaimedAt) {
+    this.reviewClaimedAt = reviewClaimedAt;
 }
 
 public void setShippingAgentName(String shippingAgentName) {
@@ -440,10 +453,6 @@ public void setRemarksInstructions(String remarksInstructions) {
 
 public void setReviewComments(String reviewComments) {
     this.reviewComments = reviewComments;
-}
-
-public void setPdfCertificatePath(String pdfCertificatePath) {
-    this.pdfCertificatePath = pdfCertificatePath;
 }
 
 }

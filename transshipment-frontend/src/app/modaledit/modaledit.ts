@@ -5,7 +5,7 @@ import { RequestService } from '../transshipmentrequest.service';
 import { AuthService } from '../auth/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
-import { Transshipmentrequest, TransshipmentResponse } from '../transhipmentrequest.models';
+import { TransshipmentRequest, TransshipmentResponse } from '../transhipmentrequest.models';
 
 function departureAfterArrivalValidator(): ValidatorFn {
   return (group: AbstractControl): ValidationErrors | null => {
@@ -300,7 +300,7 @@ export class Modaledit {
 
     const formValue = this.form.getRawValue();
 
-    const request: Transshipmentrequest = {
+    const request: TransshipmentRequest = {
       requestId: this.existingRequest.requestId,
       requesterUserId: this.existingRequest.requesterUserId,
       shippingAgentName: formValue.shippingAgentName,

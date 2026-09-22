@@ -1,14 +1,16 @@
-import { ChangeDetectorRef, Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, inject } from '@angular/core';
 import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RequestService } from '../transshipmentrequest.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { finalize } from 'rxjs';
-import { Transshipmentrequest, TransshipmentResponse, RequestStatus } from '../transhipmentrequest.models';
+import { exhaustMap, finalize, timer } from 'rxjs';
+import { TransshipmentRequest, TransshipmentResponse, RequestStatus } from '../transhipmentrequest.models';
+import { LucideRotateCwFadingClock } from '@lucide/angular';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-modal-review',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, LucideRotateCwFadingClock],
   templateUrl: './modal-review.html',
   styleUrl: './modal-review.css',
 })
@@ -18,11 +20,16 @@ export class ModalReview {
   private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly dialogData = inject<TransshipmentResponse>(DIALOG_DATA);
   private readonly dialogRef = inject(DialogRef<TransshipmentResponse, ModalReview>);
+  private readonly destroyRef = inject(DestroyRef);
 
   private existingRequest = this.dialogData;
-
+  
+  isClaiming = false;
+  isClaimed = false;
+  isClaimedByOther = false;
   isSubmitting = false;
   errorMessage = "";
+  claimErrorMessage = "";
 
   readonly decisionForm = this.formbuilder.group({
     decision: ["", [Validators.required]],
@@ -30,20 +37,7 @@ export class ModalReview {
   });
 
   constructor() {
-    if (this.existingRequest.status !== 'UNDER_REVIEW') {
-      const underReviewRequest = this.toTransshipmentrequest(this.existingRequest, 'UNDER_REVIEW');
-
-      this.requestService.update(this.existingRequest.requestId, underReviewRequest).subscribe({
-        next: () => {
-          this.existingRequest = { ...this.existingRequest, status: 'UNDER_REVIEW' };
-          this.changeDetector.markForCheck();
-        },
-        error: () => {
-          this.errorMessage = "Could not mark this request as under review.";
-          this.changeDetector.markForCheck();
-        }
-      });
-    }
+    this.claimRequest();
   }
 
   get request(): TransshipmentResponse {
@@ -76,7 +70,7 @@ export class ModalReview {
     }
   }
 
-  private toTransshipmentrequest(source: TransshipmentResponse, status: RequestStatus): Transshipmentrequest {
+  private toTransshipmentrequest(source: TransshipmentResponse, status: RequestStatus): TransshipmentRequest {
     return {
       requestId: source.requestId,
       requesterUserId: source.requesterUserId,
@@ -119,7 +113,11 @@ export class ModalReview {
   }
 
   submit(): void {
-    if (this.decisionForm.invalid || this.isSubmitting) {
+    if (
+      this.decisionForm.invalid || 
+      this.isSubmitting ||
+      !this.isClaimed
+    ) {
       this.decisionForm.markAllAsTouched();
       return;
     }
@@ -147,6 +145,8 @@ export class ModalReview {
             status: decidedStatus,
             reviewComments: formValue.reviewComments
           };
+
+          this.isClaimed = false;
           this.dialogRef.close(updatedResponse);
         },
         error: (error: HttpErrorResponse) => {
@@ -157,6 +157,118 @@ export class ModalReview {
   }
 
   close(): void {
-    this.dialogRef.close();
+    if (!this.isClaimed) {
+      this.dialogRef.close();
+      return;
+    }
+
+    this.isSubmitting = false;
+    this.errorMessage = "";
+
+    this.requestService
+      .release(this.existingRequest.requestId)
+      .pipe(
+        finalize(() => {
+          this.isSubmitting = false;
+          this.changeDetector.markForCheck();
+        })
+      )
+      .subscribe({
+        next: () => {
+          const updatedResponse: TransshipmentResponse = {
+            ...this.existingRequest,
+            status: "SUBMITTED"
+          }
+
+          this.existingRequest = updatedResponse;
+          this.isClaimed = false;
+          this.dialogRef.close();
+        },
+
+        error: (error: HttpErrorResponse) => {
+          this.errorMessage = "Could not release this request back to the review queue.";
+
+          this.changeDetector.markForCheck();
+        } 
+      })
+  }
+
+  // SSE related method
+  private claimRequest(): void {
+    if (this.existingRequest.status !== "SUBMITTED" &&
+       this.existingRequest.status !== "RESUBMITTED" &&
+       this.existingRequest.status !== "REJECTED"
+    ) {
+      
+      this.claimErrorMessage = "This request is already being reviewed and cannot be claimed.";
+      this.isClaimedByOther = true;
+      this.changeDetector.markForCheck();
+      return;
+    }
+
+    if (this.existingRequest.status == "REJECTED") {
+      this.claimErrorMessage = "Awaiting resubmission by applicant for rejected request.";
+      this.isClaimedByOther = true;
+      this.changeDetector.markForCheck();
+      return;
+    }
+
+    this.isClaiming = true;
+    this.isClaimedByOther = false;
+    this.errorMessage = "";
+    this.claimErrorMessage = "";
+
+    this.requestService
+      .claim(this.existingRequest.requestId)
+      .pipe(
+        finalize(() => {
+          this.isClaiming = false;
+          this.changeDetector.markForCheck();
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.existingRequest = {
+            ...this.existingRequest,
+            status: 'UNDER_REVIEW'
+          };
+          
+          this.isClaimed = true;
+          this.startHeartbeat();
+          this.changeDetector.markForCheck();
+        },
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 409) {
+            this.errorMessage = "Another reviewer has already claimed this request.";
+          } else {
+            this.errorMessage = "Could not claim this request for review.";
+          }
+
+          this.changeDetector.markForCheck();
+        }
+      });
+  }
+
+  private startHeartbeat(): void {
+    timer(30000, 30000)
+      .pipe(
+        exhaustMap(() => 
+          this.requestService.heartbeat(
+            this.existingRequest.requestId
+          )
+        ),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: () => {
+          console.log("Review claim heartbeat sent");
+        },
+
+        error: (error: HttpErrorResponse) => {
+          console.error("Review claim heartbeat failed:",
+            error
+          )
+        }
+      });
   }
 }

@@ -5,7 +5,7 @@ import { RequestService } from '../transshipmentrequest.service';
 import { AuthService } from '../auth/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
-import { Transshipmentrequest, TransshipmentResponse } from '../transhipmentrequest.models';
+import { TransshipmentRequest, TransshipmentResponse, RequestStatus } from '../transhipmentrequest.models';
 
 
 interface ModalPrefillData {
@@ -334,17 +334,14 @@ export class Modal {
   submit(): void {
 
     console.log("Submit function reached");
-    console.log('--- FORM VALIDATION BREAKDOWN ---');
     Object.keys(this.form.controls).forEach(key => {
       const control = this.form.get(key);
       if (control?.invalid) {
-        console.error(`❌ Field [${key}] is INVALID!`);
+        console.error(`Field [${key}] is INVALID!`);
         console.log(`Current Value: "${control.value}" (Type: ${typeof control.value})`);
         console.log(`Active Errors:`, control.errors);
       }
     });
-    console.log('---------------------------------');
-
 
     if (this.form.invalid || this.isSubmitting) {
       this.form.markAllAsTouched();
@@ -357,7 +354,9 @@ export class Modal {
 
     const formValue = this.form.getRawValue();
 
-    const request: Transshipmentrequest = {
+    const submittedStatus: RequestStatus = "SUBMITTED"; 
+
+    const request: TransshipmentRequest = {
       requestId: "",
       requesterUserId: this.prefilledData.requesterUserId,
       shippingAgentName: formValue.shippingAgentName,
@@ -379,7 +378,7 @@ export class Modal {
       billOfLadingWaybill: formValue.billOfLadingWaybill,
       rotationCallReference: formValue.rotationCallReference,
       remarksInstructions: formValue.remarksInstructions,
-      status: "SUBMITTED",
+      status: submittedStatus,
       reviewComments: "",
       pdfCertificatePath: "",
       containers: formValue.containers.map((container) => ({

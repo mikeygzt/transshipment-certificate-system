@@ -59,7 +59,7 @@ export class AuditLogs {
         return "User Login";
       
       case "REQUEST_RESUBMITTED":
-        return "Request Submitted";
+        return "Request Resubmitted";
 
       case "REQUEST_APPROVED":
         return "Request Approved";

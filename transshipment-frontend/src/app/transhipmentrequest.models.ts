@@ -1,4 +1,4 @@
-export type RequestStatus ="SUBMITTED" |"UNDER_REVIEW"|"APPROVED"|"REJECTED"|"RESUBMITTED";
+export type RequestStatus = "SUBMITTED" |"UNDER_REVIEW"|"APPROVED"|"REJECTED"|"RESUBMITTED";
 
 export interface ContainerDetailsRequest {
     containerId: string;
@@ -28,7 +28,7 @@ export interface ContainerDetailsResponse {
     finalDestination: string  | null;
 }
 
-export interface Transshipmentrequest {
+export interface TransshipmentRequest {
     requestId: string;
     requesterUserId: string;
     shippingAgentName: string | null;

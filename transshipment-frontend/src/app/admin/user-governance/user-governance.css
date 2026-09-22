@@ -170,17 +170,6 @@
     height: 17px;
 }
 
-.table-container {
-    width: 100%;
-    height: auto;
-    min-height: 0;
-    align-self: flex-start;
-    overflow-x: auto;
-    border: 1px solid #e3e7ec;
-    border-radius: 10px;
-    background: #ffffff;
-}
-
 .user-table {
     width: 100%;
     height: auto;

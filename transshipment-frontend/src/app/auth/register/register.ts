@@ -1,18 +1,25 @@
 import { ChangeDetectorRef, Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { AuthService } from '../auth.service';
 import { finalize } from 'rxjs';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { LucideEye, LucideEyeOff } from '@lucide/angular';
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    LucideEye,
+    LucideEyeOff
+  ],
   templateUrl: './register.html',
   styleUrls: [
     '../auth-layout.css',
     './register.css']
 })
+
 export class Register {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
@@ -23,6 +30,8 @@ export class Register {
   errorMessage = "";
   registrationComplete = false;
   registeredEmail = "";
+  hidePassword = true;
+  isPasswordFocused = false;
 
   readonly form = this.formBuilder.nonNullable.group({
     fullName: [
@@ -61,14 +70,31 @@ export class Register {
         Validators.email
       ]
     ],
+    confirmEmail: [
+      "",
+      [
+        Validators.required
+      ]
+    ],
     password: [
       "",
       [
         Validators.required,
         Validators.minLength(8)
       ]
+    ],
+    confirmPassword: [
+      "",
+      Validators.required
     ]
-  });
+  },
+  {
+    validators: [
+      matchFieldsValidator("password", "confirmPassword", "passwordMismatch"),
+      matchFieldsValidator("email", "confirmEmail", "emailMismatch")
+    ]
+  }
+  );
 
   submit(): void {
     if (this.form.invalid || this.isSubmitting){
@@ -125,4 +151,23 @@ export class Register {
     this.errorMessage = "";
   }
 
+  togglePassword(): void {
+    this.hidePassword = !this.hidePassword;
+  }
+
+  handlePasswordFocus(): void {
+    this.isPasswordFocused = !this.isPasswordFocused;
+  }
 }
+
+// Method for confirming email & password
+export function matchFieldsValidator(fieldOne: string, fieldTwo: string, errorKey: string): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const group = control as AbstractControl;
+    const valueOne = group.get(fieldOne)?.value;
+    const valueTwo = group.get(fieldTwo)?.value;
+
+    return valueOne === valueTwo ? null : { [errorKey]: true };
+  }
+}
+

@@ -8,6 +8,8 @@ import { UserGovernance } from './admin/user-governance/user-governance';
 import { roleGuard } from './auth/role.guard';
 import { guestGuard } from './auth/guest.guard';
 import { AuditLogs } from './admin/audit-logs/audit-logs';
+import { ApprovedRequests } from './reviewer/approved-requests/approved-requests';
+import { CertificateVerification } from './certificate-verification/certificate-verification';
 
 export const routes: Routes = [
     {
@@ -26,12 +28,26 @@ export const routes: Routes = [
         canActivate: [guestGuard]
     },
     {
+        path: "verify-certificate",
+        component: CertificateVerification
+    },
+    {
+        path: "verify-certificate/:controlNumber",
+        component: CertificateVerification
+    },
+    {
         path: "my-applications",
         component: MyApplications,
         canActivate: [roleGuard(["REQUESTER"])]
-    }, {
+    },
+    {
         path: "review-queue",
         component: ReviewQueue,
+        canActivate: [roleGuard(["REVIEWER"])]
+    },
+    {
+        path: "approved-requests",
+        component: ApprovedRequests,
         canActivate: [roleGuard(["REVIEWER"])]
     },
     {

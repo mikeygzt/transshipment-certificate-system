@@ -1,22 +1,33 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { DashboardLayout } from '../../shared/dashboard-layout/dashboard-layout';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { RequestService } from '../../transshipmentrequest.service';
-import { TransshipmentResponse, Transshipmentrequest, RequestStatus } from '../../transhipmentrequest.models';
+import { TransshipmentResponse, TransshipmentRequest, RequestStatus } from '../../transhipmentrequest.models';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
 import { AuthenticatedUser } from '../../auth.models';
-import { LucideListFilter, LucideSearch, LucideX } from '@lucide/angular';
+import { LucideFile, LucideListFilter, LucideSearch, LucideSquareKanban, LucideX } from '@lucide/angular';
 import { finalize } from 'rxjs';
 import { Dialog } from '@angular/cdk/dialog';
 import { ModalReview } from '../../modal-review/modal-review';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
+import { DatePipe } from '@angular/common';
+import { ReviewQueueEventService } from '../../review-queue-events.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-type ReviewQueueStatusFilter = 'ALL' | 'SUBMITTED' | 'UNDER_REVIEW' | 'RESUBMITTED';
+export type ReviewQueueStatusFilter = 'ALL' | 'SUBMITTED' | 'UNDER_REVIEW' | 'RESUBMITTED' | 'REJECTED';
 
 @Component({
   selector: 'app-review-queue',
-  imports: [DashboardLayout, ReactiveFormsModule, LucideListFilter, LucideSearch, LucideX],
+  imports: [DashboardLayout, 
+    ReactiveFormsModule, 
+    LucideListFilter, 
+    LucideSearch,
+    LucideFile,
+    NgxDatatableModule,
+    DatePipe
+  ],
   templateUrl: './review-queue.html',
   styleUrl: './review-queue.css',
 })
@@ -26,6 +37,9 @@ export class ReviewQueue {
   private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
   private readonly dialog = inject(Dialog);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly reviewQueueEventService = inject(ReviewQueueEventService);
+
   readonly currentUser = signal<AuthenticatedUser | null>(null);
   readonly requests = signal<TransshipmentResponse[]>([]);
   readonly search = signal("");
@@ -41,8 +55,27 @@ export class ReviewQueue {
   readonly dateFrom = signal("");
   readonly dateTo = signal("");
 
+  readonly tableSorts = [
+    {
+      prop: 'createdAt',
+      dir: 'desc' as const
+    }
+  ]
+
   constructor() {
     this.loadRequests();
+    
+    // When the reviewer navigates away from the review queue page,
+    // the component is destroyed and the SSE connection is closed
+    this.reviewQueueEventService
+      .listenForQueueChange()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        console.log("Review queue changed. Reloading requests.")
+        this.loadRequests();
+      })
   }
 
   private loadRequests(): void{
@@ -52,11 +85,11 @@ export class ReviewQueue {
         })
       ).subscribe({
         next: data => {
-          const reviewableStatuses: RequestStatus[] = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'];
+          const reviewableStatuses: RequestStatus[] = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'REJECTED'];
           const reviewable = data.filter(request => reviewableStatuses.includes(request.status));
           this.requests.set(reviewable);
         },
-        error: (error:HttpErrorResponse) =>{
+        error: () => {
           this.errorMessage = "There was an error in loading the requests";
         }
       })
@@ -85,38 +118,30 @@ export class ReviewQueue {
     this.selectedRequest.set(null);
   }
 
-  //Opens the read-only review modal for the currently selected request, with the accept/reject decision panel.
-  //Note: ModalReview itself marks the request UNDER_REVIEW on open, so no status change happens here.
-  openReviewModal(request: TransshipmentResponse): void {
-    const dialogRef = this.dialog.open<TransshipmentResponse | undefined>(ModalReview, {
-      data: request
-    });
-
-    dialogRef.closed.subscribe((decidedRequest) => {
-      if (decidedRequest) {
-        this.requests.update(current =>
-          current.filter(r => r.requestId !== decidedRequest.requestId)
-        );
-        this.closeRequestDetails();
-      }
-    });
+  onTableActivate(event: any): void {
+    if (event.type === "click" && event.row) {
+      this.openReviewModal(event.row);
+    }
   }
 
-  //Formats an ISO timestamp as DD, MM, YYYY HH:MM
-  formatCreatedAt(createdAt: string): string {
-    const date = new Date(createdAt);
+  //Opens the read-only review modal for the currently selected request, with the accept/reject decision panel.
+  openReviewModal(request: TransshipmentResponse): void {
+    const dialogRef = this.dialog.open<TransshipmentResponse | undefined>(ModalReview, {
+      data: request,
+      disableClose: true
+    });
 
-    if (isNaN(date.getTime())) {
-      return createdAt;
-    }
-
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-
-    return `${day}/${month}/${year}`;
+    dialogRef.closed.subscribe((updatedRequest) => {
+      if (updatedRequest) {
+        this.requests.update(current => 
+          current.map(request => 
+            request.requestId === updatedRequest.requestId
+              ? updatedRequest
+              : request
+          )
+        )
+      }
+    })
   }
 
   readonly filteredRequests = computed(() => {
@@ -163,20 +188,15 @@ export class ReviewQueue {
         manifestNo.toLowerCase().includes(query)
       );
     });
-  }
-);
+  });
 
   getStatusLabel(status: RequestStatus): string {
-      switch (status) {
-        case "SUBMITTED": return "Submitted";
-        case "UNDER_REVIEW": return "Under Review";
-        case "APPROVED": return "Approved";
-        case "REJECTED": return "Rejected";
-        case "RESUBMITTED": return "Resubmitted";
-      }
+    switch (status) {
+      case "SUBMITTED": return "Submitted";
+      case "UNDER_REVIEW": return "Under Review";
+      case "APPROVED": return "Approved";
+      case "REJECTED": return "Rejected";
+      case "RESUBMITTED": return "Resubmitted";
+    }
 }
-
-
-
-
 }
